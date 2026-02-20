@@ -1,0 +1,2112 @@
+<!doctype html>
+<html lang="hu">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Vérnyomásnapló</title>
+  <style>
+    :root{
+      --card:rgba(255,255,255,.06);
+      --text:rgba(255,255,255,.92);
+      --muted:rgba(255,255,255,.68);
+      --border:rgba(255,255,255,.12);
+      --shadow:0 18px 55px rgba(0,0,0,.35);
+      --accent:#6ee7ff;
+      --accent2:#a78bfa;
+      --accent3:#3ee6a0;
+      --danger:#ff6b6b;
+      --warn:#ffcc66;
+      --radius:18px;
+      --radius2:14px;
+      --font:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:var(--font);
+      color:var(--text);
+      background:
+        radial-gradient(1200px 600px at 20% 10%, rgba(110,231,255,.18), transparent 60%),
+        radial-gradient(900px 500px at 80% 0%, rgba(167,139,250,.16), transparent 55%),
+        radial-gradient(900px 600px at 60% 90%, rgba(62,230,160,.10), transparent 55%),
+        linear-gradient(180deg, #070b14 0%, #0b1220 100%);
+      min-height:100vh;
+    }
+    .wrap{max-width:1100px;margin:0 auto;padding:24px 16px 60px;}
+    header{
+      display:flex;gap:16px;align-items:flex-start;justify-content:space-between;
+      flex-wrap:wrap;margin-bottom:18px;
+    }
+    .title{display:flex;flex-direction:column;gap:6px;}
+    h1{margin:0;font-size:clamp(22px,2.6vw,34px);letter-spacing:.2px;}
+    .sub{margin:0;color:var(--muted);max-width:78ch;line-height:1.45;}
+
+    .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:start;}
+    @media (max-width:920px){.grid{grid-template-columns:1fr;}}
+
+    .card{
+      background:linear-gradient(180deg,var(--card) 0%, rgba(255,255,255,.05) 100%);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+    .card .hd{
+      padding:16px 16px 12px;
+      border-bottom:1px solid rgba(255,255,255,.10);
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+    }
+    .card .hd h2{margin:0;font-size:16px;letter-spacing:.2px;}
+    .pill{
+      font-size:12px;padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--muted);background:rgba(255,255,255,.04);
+      display:inline-flex;align-items:center;gap:8px;user-select:none;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      box-shadow:0 0 0 3px rgba(110,231,255,.15);
+    }
+    .bd{padding:16px;}
+
+    .form{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+    @media (max-width:520px){.form{grid-template-columns:1fr;}}
+    label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);}
+
+    input,textarea,select{
+      width:100%;
+      padding:11px 12px;
+      border-radius:var(--radius2);
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      outline:none;
+    }
+    input:focus,textarea:focus,select:focus{
+      border-color:rgba(110,231,255,.55);
+      box-shadow:0 0 0 4px rgba(110,231,255,.12);
+    }
+    textarea{resize:vertical;min-height:42px;}
+    .span2{grid-column:1/-1;}
+
+    .actions{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:10px;}
+    button{
+      border:0;cursor:pointer;
+      padding:11px 14px;
+      border-radius:14px;
+      font-weight:650;
+      letter-spacing:.2px;
+      color:#08101d;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      box-shadow:0 12px 30px rgba(110,231,255,.12);
+      transition:transform .08s ease,filter .2s ease;
+      white-space:nowrap;
+    }
+    button:hover{filter:brightness(1.05);}
+    button:active{transform:translateY(1px);}
+    button:disabled{opacity:.5;cursor:not-allowed;transform:none;filter:none;}
+    .btn-ghost{
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.14);
+      box-shadow:none;
+      font-weight:600;
+    }
+    .btn-danger{
+      background:rgba(255,107,107,.12);
+      color:#ffd0d0;
+      border:1px solid rgba(255,107,107,.25);
+      box-shadow:none;
+    }
+    .btn-ok{
+      background:rgba(62,230,160,.12);
+      color:#cbffe9;
+      border:1px solid rgba(62,230,160,.22);
+      box-shadow:none;
+      font-weight:700;
+    }
+    .btn-warn{
+      background:rgba(255,204,102,.12);
+      color:#ffe6b3;
+      border:1px solid rgba(255,204,102,.22);
+      box-shadow:none;
+      font-weight:700;
+    }
+
+    .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
+    @media (max-width:520px){.stats{grid-template-columns:1fr;}}
+    .stat{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:var(--radius2);
+      padding:12px;
+    }
+    .stat .k{color:var(--muted);font-size:12px;}
+    .stat .v{font-size:18px;margin-top:6px;font-weight:800;letter-spacing:.2px;}
+    .stat small{color:var(--muted);font-weight:600;}
+
+    .toolbar{
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+      margin:10px 0 10px;
+    }
+    .toolbar .left,.toolbar .right{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .mini{font-size:12px;color:var(--muted);}
+
+    .pageSize{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .pageSize select{
+      padding:8px 10px;
+      border-radius:999px;
+      width:auto;
+      font-size:12px;
+    }
+
+    .rangeCustom{
+      display:none;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      font-size:12px;
+      white-space:nowrap;
+    }
+    .rangeCustom input{
+      width:90px;
+      padding:8px 10px;
+      border-radius:999px;
+      font-size:12px;
+    }
+
+    .pager{
+      display:flex; gap:8px; align-items:center; flex-wrap:wrap;
+      padding:8px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+    }
+    .pager .pbtn{
+      padding:8px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.12);
+      box-shadow:none;
+      font-weight:800;
+      min-width:38px;
+    }
+    .pager .pbtn:hover{ filter:brightness(1.05); }
+    .pager .pbtn:disabled{ opacity:.45; cursor:not-allowed; filter:none; }
+    .pager .pbtn.active{
+      background:linear-gradient(90deg, rgba(110,231,255,.25), rgba(167,139,250,.20));
+      border-color:rgba(110,231,255,.35);
+    }
+    .pager .dots{ color:rgba(255,255,255,.35); padding:0 2px; font-weight:800; }
+
+    .chartCard{
+      margin-top:10px;
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:var(--radius);
+      padding:12px;
+      position:relative;
+    }
+    .chartTop{
+      display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
+      margin-bottom:10px;
+    }
+    .legend{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .lg{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      font-size:12px;user-select:none;
+    }
+    .swatch{width:10px;height:10px;border-radius:999px;background:#fff;opacity:.9;}
+
+    .chartControls{
+      display:flex;gap:10px;flex-wrap:wrap;align-items:center;justify-content:space-between;
+      margin-bottom:10px;
+    }
+    .toggles{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .chk{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:8px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:var(--muted);
+      font-size:12px;user-select:none;
+    }
+    .chk input{width:auto;padding:0;margin:0;box-shadow:none;}
+
+    .zones{
+      display:flex;gap:8px;flex-wrap:wrap;align-items:center;
+      color:var(--muted);font-size:12px;
+    }
+    .zones input{
+      width:86px;
+      padding:9px 10px;
+      border-radius:999px;
+    }
+
+    .canvasWrap{position:relative;}
+    canvas{
+      width:100%;
+      height:300px;
+      display:block;
+      border-radius:14px;
+      background:rgba(0,0,0,.16);
+      border:1px solid rgba(255,255,255,.10);
+      touch-action:none;
+    }
+
+    /* ✅ plusz legend a grafikon ALATT (képernyőn) */
+    .legendBelow{
+      margin-top:10px;
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content:flex-start;
+      color:var(--muted);
+      font-size:12px;
+    }
+    .legendBelow .it{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:7px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      user-select:none;
+    }
+    .legendBelow .sq{
+      width:12px;height:12px;border-radius:4px;
+      border:1px solid rgba(255,255,255,.25);
+    }
+
+    .tooltip{
+      position:absolute;
+      padding:10px 10px;
+      border-radius:14px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.55);
+      backdrop-filter:blur(8px);
+      color:var(--text);
+      box-shadow:0 14px 40px rgba(0,0,0,.35);
+      font-size:12px;
+      line-height:1.35;
+      display:none;
+      pointer-events:none;
+      max-width:280px;
+      white-space:nowrap;
+    }
+    .tooltip .t{color:rgba(255,255,255,.75);margin-bottom:6px;}
+    .tooltip .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+    .tooltip .b{
+      display:inline-flex;align-items:center;gap:8px;
+      padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      font-weight:800;
+    }
+    .tooltip .b .s{width:8px;height:8px;border-radius:999px;background:#fff;opacity:.95;}
+
+    .list{display:flex;flex-direction:column;gap:10px;margin-top:10px;}
+    .item{
+      background:rgba(255,255,255,.05);
+      border:1px solid rgba(255,255,255,.10);
+      border-radius:var(--radius);
+      padding:12px;
+      display:flex;gap:12px;justify-content:space-between;align-items:flex-start;
+    }
+    .item .l{display:flex;flex-direction:column;gap:8px;min-width:0;}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;}
+    .badge{
+      font-size:12px;padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      background:rgba(0,0,0,.18);
+      color:var(--text);
+      font-weight:800;
+      display:inline-flex;gap:8px;align-items:center;user-select:none;
+    }
+    .tag{
+      font-size:12px;padding:5px 10px;border-radius:999px;
+      color:var(--muted);
+      border:1px dashed rgba(255,255,255,.20);
+      background:rgba(255,255,255,.03);
+      user-select:none;
+    }
+    .alertTag{
+      font-size:12px;padding:5px 10px;border-radius:999px;
+      color:#ffe0e0;
+      border:1px solid rgba(255,107,107,.35);
+      background:rgba(255,107,107,.10);
+      font-weight:900;
+      user-select:none;
+      display:inline-flex;align-items:center;gap:6px;
+    }
+    .note{
+      color:var(--muted);
+      font-size:13px;
+      line-height:1.35;
+      white-space:pre-wrap;
+      word-break:break-word;
+    }
+    .item .r{display:flex;flex-direction:column;gap:8px;align-items:flex-end;flex-shrink:0;}
+    .iconbtn{
+      padding:9px 11px;
+      border-radius:12px;
+      background:rgba(255,255,255,.06);
+      color:var(--text);
+      border:1px solid rgba(255,255,255,.12);
+      font-weight:800;
+    }
+    .iconbtn:hover{filter:brightness(1.05);}
+    .iconbtn.d{
+      background:rgba(255,107,107,.10);
+      border-color:rgba(255,107,107,.22);
+      color:#ffd0d0;
+    }
+
+    .empty{
+      padding:18px;
+      border-radius:var(--radius);
+      border:1px dashed rgba(255,255,255,.20);
+      color:var(--muted);
+      background:rgba(255,255,255,.03);
+      line-height:1.45;
+      margin-top:10px;
+    }
+
+    .toast{
+      position:fixed;
+      left:50%;
+      bottom:18px;
+      transform:translateX(-50%);
+      background:rgba(0,0,0,.45);
+      border:1px solid rgba(255,255,255,.14);
+      backdrop-filter:blur(8px);
+      padding:10px 12px;
+      border-radius:999px;
+      color:var(--text);
+      display:none;
+      z-index:50;
+      box-shadow:0 14px 40px rgba(0,0,0,.35);
+      font-size:13px;
+      font-weight:700;
+    }
+    .hint{color:var(--muted);font-size:12px;line-height:1.4;margin-top:10px;}
+
+    .risk-ok{border-color:rgba(62,230,160,.28);}
+    .risk-ok .badge{border-color:rgba(62,230,160,.35);}
+    .risk-warn{border-color:rgba(255,204,102,.28);}
+    .risk-warn .badge{border-color:rgba(255,204,102,.35);}
+    .risk-high{border-color:rgba(255,107,107,.30);}
+    .risk-high .badge{border-color:rgba(255,107,107,.40);}
+
+    /* PRINT / PDF (A4) */
+    #printArea{display:none;}
+    @media print{
+      @page{ size:A4; margin:12mm; }
+      body{ background:#fff !important; color:#000 !important; -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+      .wrap, header, .grid, .card, .toast{ display:none !important; }
+      #printArea{ display:block !important; }
+    }
+    .printDoc{ font-family:var(--font); color:#000; }
+    .printHead{ display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:10px; }
+    .printHead h2{ margin:0; font-size:18px; }
+    .printMeta{ font-size:12px; line-height:1.35; color:#222; white-space:nowrap; }
+    .printStats{ display:flex; gap:10px; flex-wrap:wrap; margin:10px 0 10px; font-size:12px; }
+    .pBox{ border:1px solid #bbb; border-radius:8px; padding:8px 10px; min-width:140px; }
+    .pBox b{ font-size:14px; }
+    .printChartBox{
+      border:1px solid #bbb;
+      border-radius:10px;
+      padding:8px;
+      margin:8px 0 12px;
+    }
+    .printChartBox img{ width:100%; height:auto; display:block; }
+    .printTable{ width:100%; border-collapse:collapse; font-size:11px; }
+    .printTable th,.printTable td{ border:1px solid #bbb; padding:6px 6px; vertical-align:top; }
+    .printTable th{ background:#f3f3f3; text-align:left; }
+    .mutedPrint{ color:#555; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Vérnyomásnapló</h1>
+        <p class="sub">
+          Egyéni nap-szűrés (pl. 14 nap) • Grafikon a nyomtatási/PDF nézetben is • Lapozás + oldalméret • Riasztás jelölés.
+          <br><span style="opacity:.9">Grafikon: <b>Nap</b> alul, <b>Érték (mmHg/BPM)</b> bal oldalt (függőlegesen).</span>
+        </p>
+      </div>
+      <div class="pill"><span class="dot"></span> Online (helyi tárolás)</div>
+    </header>
+
+    <div class="grid">
+      <!-- LEFT -->
+      <section class="card">
+        <div class="hd">
+          <h2 id="formTitle">Új mérés rögzítése</h2>
+          <span class="mini" id="countLabel">0 bejegyzés</span>
+        </div>
+        <div class="bd">
+          <form id="bpForm" class="form" autocomplete="off">
+            <label>
+              Dátum és idő
+              <input type="datetime-local" id="dt" required />
+            </label>
+
+            <label>
+              Mérési helyzet
+              <select id="context">
+                <option value="Ülve">Ülve</option>
+                <option value="Fekve">Fekve</option>
+                <option value="Állva">Állva</option>
+                <option value="Terhelés után">Terhelés után</option>
+              </select>
+            </label>
+
+            <label>
+              Szisztolés (SYS) mmHg
+              <input type="number" id="sys" min="60" max="260" inputmode="numeric" required placeholder="pl. 125" />
+            </label>
+
+            <label>
+              Diasztolés (DIA) mmHg
+              <input type="number" id="dia" min="40" max="160" inputmode="numeric" required placeholder="pl. 80" />
+            </label>
+
+            <label>
+              Pulzus (BPM)
+              <input type="number" id="pulse" min="30" max="220" inputmode="numeric" placeholder="pl. 72" />
+            </label>
+
+            <label>
+              Kar
+              <select id="arm">
+                <option value="Bal">Bal</option>
+                <option value="Jobb">Jobb</option>
+              </select>
+            </label>
+
+            <label class="span2">
+              Megjegyzés (opcionális)
+              <textarea id="note" placeholder="pl. reggel, kávé előtt, fejfájás..."></textarea>
+            </label>
+
+            <div class="span2 actions">
+              <button type="submit" id="saveBtn">Mentés</button>
+              <button type="button" class="btn-ghost" id="cancelEditBtn" style="display:none;">Mégse</button>
+
+              <button type="button" class="btn-ghost" id="fillNow">Mostani idő</button>
+              <button type="button" class="btn-ok" id="quickMorning">Reggel (07:00)</button>
+              <button type="button" class="btn-warn" id="quickEvening">Este (19:00)</button>
+
+              <button type="button" class="btn-ghost" id="exportJsonBtn">Export (JSON)</button>
+              <button type="button" class="btn-ghost" id="exportCsvAllBtn">CSV export (összes)</button>
+              <button type="button" class="btn-ghost" id="exportCsvFilteredBtn">CSV export (szűrt)</button>
+
+              <label class="btn-ghost" style="display:inline-flex;align-items:center;gap:8px;cursor:pointer;">
+                Import (JSON)
+                <input type="file" id="importFile" accept="application/json" style="display:none">
+              </label>
+
+              <button type="button" class="btn-danger" id="clearAll">Összes törlése</button>
+            </div>
+
+            <div class="span2 hint">
+              Riasztás: <b>SYS ≥ 140</b> vagy <b>DIA ≥ 90</b> → ⚠ jelölés.
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- RIGHT -->
+      <section class="card">
+        <div class="hd">
+          <h2>Áttekintés & bejegyzések</h2>
+          <span class="pill"><span class="dot"></span> Átlagok + Trend</span>
+        </div>
+        <div class="bd">
+          <div class="stats">
+            <div class="stat">
+              <div class="k">Átlag SYS</div>
+              <div class="v" id="avgSys">–</div>
+              <small class="mini">mmHg</small>
+            </div>
+            <div class="stat">
+              <div class="k">Átlag DIA</div>
+              <div class="v" id="avgDia">–</div>
+              <small class="mini">mmHg</small>
+            </div>
+            <div class="stat">
+              <div class="k">Átlag pulzus</div>
+              <div class="v" id="avgPulse">–</div>
+              <small class="mini">BPM</small>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="left">
+              <input id="search" type="text" placeholder="Keresés megjegyzésben (pl. reggel, kávé)..." />
+
+              <select id="range" title="Időszűrés">
+                <option value="all">Összes</option>
+                <option value="7">Utolsó 7 nap</option>
+                <option value="30">Utolsó 30 nap</option>
+                <option value="custom">Egyéni (napok)</option>
+              </select>
+
+              <div class="rangeCustom" id="rangeCustomWrap" title="Adj meg egyedi nap számot (pl. 14)">
+                Napok:
+                <input type="number" id="rangeCustomDays" min="1" max="3650" step="1" value="14" />
+              </div>
+
+              <button type="button" class="btn-ghost" id="toggleChart">Grafikon elrejt</button>
+            </div>
+
+            <div class="right">
+              <span class="mini" id="filteredLabel">–</span>
+
+              <div class="pageSize" title="Hány tétel látszódjon egy oldalon">
+                Oldalméret:
+                <select id="pageSize">
+                  <option value="5">5</option>
+                  <option value="10">10</option>
+                  <option value="20">20</option>
+                  <option value="all">Összes</option>
+                </select>
+              </div>
+
+              <div class="pager" id="pager" style="display:none;"></div>
+
+              <button type="button" class="btn-ghost" id="printBtn">Nyomtatás / PDF (A4)</button>
+              <button type="button" class="btn-ghost" id="seedDemo">Demo adatok</button>
+            </div>
+          </div>
+
+          <div class="chartCard" id="chartWrap">
+            <div class="chartTop">
+              <div class="legend">
+                <span class="lg"><span class="swatch" id="swSys"></span> SYS</span>
+                <span class="lg"><span class="swatch" id="swDia"></span> DIA</span>
+                <span class="lg"><span class="swatch" id="swPulse"></span> Pulzus</span>
+                <span class="lg"><span class="swatch" id="swZone"></span> Célzóna</span>
+              </div>
+              <span class="mini" id="chartHint">Szűrés alapján frissül</span>
+            </div>
+
+            <div class="chartControls">
+              <div class="toggles">
+                <label class="chk"><input type="checkbox" id="showPulse" checked> Pulzus-vonal</label>
+                <label class="chk"><input type="checkbox" id="showZone" checked> Célzóna</label>
+                <label class="chk"><input type="checkbox" id="snapNearest" checked> Tooltip “legközelebbi”</label>
+              </div>
+
+              <div class="zones" title="Célzóna (SYS és DIA tartomány) – naplózáshoz">
+                <span class="mini">Cél SYS</span>
+                <input type="number" id="zoneSysLo" min="60" max="260" step="1" value="110" />
+                <input type="number" id="zoneSysHi" min="60" max="260" step="1" value="130" />
+                <span class="mini">Cél DIA</span>
+                <input type="number" id="zoneDiaLo" min="40" max="160" step="1" value="70" />
+                <input type="number" id="zoneDiaHi" min="40" max="160" step="1" value="85" />
+              </div>
+            </div>
+
+            <div class="canvasWrap">
+              <canvas id="chart" width="1200" height="560"></canvas>
+              <div class="tooltip" id="tooltip"></div>
+            </div>
+
+            <!-- ✅ SZÍNMAGYARÁZAT A GRAFIKON ALATT (képernyőn) -->
+            <div class="legendBelow" aria-label="Színmagyarázat">
+              <span class="it"><span class="sq" style="background:rgba(110,231,255,.95)"></span> SYS (mmHg)</span>
+              <span class="it"><span class="sq" style="background:rgba(167,139,250,.95)"></span> DIA (mmHg)</span>
+              <span class="it"><span class="sq" style="background:rgba(62,230,160,.95)"></span> Pulzus (BPM)</span>
+              <span class="it"><span class="sq" style="background:rgba(255,204,102,.45)"></span> Célzóna</span>
+            </div>
+
+            <div class="hint">
+              Nyomtatás/PDF: a grafikon <b>képként</b> bekerül, és a képen is lesz: <b>cím</b>, <b>Nap</b>, <b>Érték (mmHg/BPM)</b>, dátumok + skála + <b>színmagyarázat</b>.
+            </div>
+          </div>
+
+          <div class="list" id="list"></div>
+          <div class="empty" id="empty" style="display:none;">
+            Még nincs bejegyzésed. Adj hozzá egy mérést bal oldalt.
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div id="printArea"></div>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    (function(){
+      const STORAGE_KEY = "bp_log_v12";
+      const PREF_KEY = "bp_chart_prefs_v8";
+      const UI_KEY = "bp_ui_prefs_v7";
+
+      const $ = (id) => document.getElementById(id);
+
+      const form = $("bpForm");
+      const formTitle = $("formTitle");
+      const saveBtn = $("saveBtn");
+      const cancelEditBtn = $("cancelEditBtn");
+
+      const dt = $("dt");
+      const sys = $("sys");
+      const dia = $("dia");
+      const pulse = $("pulse");
+      const note = $("note");
+      const arm = $("arm");
+      const context = $("context");
+
+      const list = $("list");
+      const empty = $("empty");
+      const search = $("search");
+      const range = $("range");
+      const rangeCustomWrap = $("rangeCustomWrap");
+      const rangeCustomDays = $("rangeCustomDays");
+
+      const avgSys = $("avgSys");
+      const avgDia = $("avgDia");
+      const avgPulse = $("avgPulse");
+
+      const countLabel = $("countLabel");
+      const filteredLabel = $("filteredLabel");
+      const toast = $("toast");
+
+      const fillNowBtn = $("fillNow");
+      const quickMorningBtn = $("quickMorning");
+      const quickEveningBtn = $("quickEvening");
+
+      const exportJsonBtn = $("exportJsonBtn");
+      const exportCsvAllBtn = $("exportCsvAllBtn");
+      const exportCsvFilteredBtn = $("exportCsvFilteredBtn");
+      const importFile = $("importFile");
+      const clearAllBtn = $("clearAll");
+      const seedDemoBtn = $("seedDemo");
+      const printBtn = $("printBtn");
+
+      const pageSizeSel = $("pageSize");
+      const pager = $("pager");
+
+      const chartWrap = $("chartWrap");
+      const toggleChartBtn = $("toggleChart");
+      const chartCanvas = $("chart");
+      const chartHint = $("chartHint");
+      const tooltip = $("tooltip");
+
+      const showPulseChk = $("showPulse");
+      const showZoneChk = $("showZone");
+      const snapNearestChk = $("snapNearest");
+
+      const zoneSysLo = $("zoneSysLo");
+      const zoneSysHi = $("zoneSysHi");
+      const zoneDiaLo = $("zoneDiaLo");
+      const zoneDiaHi = $("zoneDiaHi");
+
+      const printArea = $("printArea");
+
+      $("swSys").style.background = "rgba(110,231,255,.95)";
+      $("swDia").style.background = "rgba(167,139,250,.95)";
+      $("swPulse").style.background = "rgba(62,230,160,.95)";
+      $("swZone").style.background = "rgba(255,204,102,.70)";
+
+      let entries = loadAny();
+      let chartVisible = true;
+
+      let editingId = null;
+
+      let page = 1;
+      let pageSize = 5;
+
+      let chartState = null;
+
+      setNow();
+      loadUiPrefs();
+      loadChartPrefs();
+      syncRangeCustomUI();
+      render();
+
+      form.addEventListener("submit", (e) => {
+        e.preventDefault();
+
+        const sysV = toInt(sys.value);
+        const diaV = toInt(dia.value);
+        const pulseV = pulse.value.trim() ? toInt(pulse.value) : null;
+
+        if(!dt.value) return showToast("Adj meg dátumot és időt.");
+        if(!isFinite(sysV) || !isFinite(diaV)) return showToast("SYS és DIA kötelező.");
+        if(sysV < 60 || sysV > 260 || diaV < 40 || diaV > 160) return showToast("Értékek határon kívül.");
+        if(sysV <= diaV) return showToast("A SYS általában nagyobb, mint a DIA.");
+
+        const item = {
+          id: editingId ? editingId : cryptoRandomId(),
+          ts: new Date(dt.value).toISOString(),
+          sys: sysV,
+          dia: diaV,
+          pulse: (pulseV && isFinite(pulseV)) ? pulseV : null,
+          note: note.value.trim(),
+          arm: arm.value,
+          context: context.value
+        };
+
+        if(editingId){
+          const idx = entries.findIndex(x => x.id === editingId);
+          if(idx >= 0){
+            entries[idx] = item;
+            entries.sort((a,b)=> new Date(b.ts) - new Date(a.ts));
+            save(entries);
+            showToast("Módosítva ✔");
+            exitEditMode();
+            page = 1;
+            render();
+            return;
+          }else{
+            editingId = null;
+          }
+        }
+
+        entries.unshift(item);
+        save(entries);
+
+        note.value = "";
+        showToast("Mentve ✔");
+        page = 1;
+        render();
+      });
+
+      cancelEditBtn.addEventListener("click", () => {
+        exitEditMode();
+        showToast("Szerkesztés megszakítva.");
+      });
+
+      fillNowBtn.addEventListener("click", () => setNow(true));
+
+      quickMorningBtn.addEventListener("click", () => {
+        setTimePreset(7, 0);
+        if(!note.value.trim()) note.value = "Reggel";
+        sys.focus();
+        showToast("Reggeli idő beállítva ✔");
+      });
+
+      quickEveningBtn.addEventListener("click", () => {
+        setTimePreset(19, 0);
+        if(!note.value.trim()) note.value = "Este";
+        sys.focus();
+        showToast("Esti idő beállítva ✔");
+      });
+
+      search.addEventListener("input", () => { page = 1; render(); });
+
+      range.addEventListener("change", () => {
+        syncRangeCustomUI();
+        page = 1;
+        saveUiPrefs();
+        render();
+      });
+
+      rangeCustomDays.addEventListener("input", () => {
+        if(range.value !== "custom") return;
+        page = 1;
+        saveUiPrefs();
+        render();
+      });
+
+      pageSizeSel.addEventListener("change", () => {
+        const v = pageSizeSel.value;
+        pageSize = (v === "all") ? Infinity : clampInt(toInt(v), 1, 9999);
+        page = 1;
+        saveUiPrefs();
+        renderListOnly();
+        renderPager(getFiltered().filtered.length);
+      });
+
+      [showPulseChk, showZoneChk, snapNearestChk, zoneSysLo, zoneSysHi, zoneDiaLo, zoneDiaHi].forEach(el=>{
+        el.addEventListener("input", () => {
+          persistChartPrefs();
+          if(chartVisible) drawChart(getFiltered().filtered);
+        });
+      });
+
+      toggleChartBtn.addEventListener("click", () => {
+        chartVisible = !chartVisible;
+        chartWrap.style.display = chartVisible ? "block" : "none";
+        toggleChartBtn.textContent = chartVisible ? "Grafikon elrejt" : "Grafikon mutat";
+        if(chartVisible) drawChart(getFiltered().filtered);
+        hideTooltip();
+      });
+
+      exportJsonBtn.addEventListener("click", () => {
+        const data = {
+          exportedAt: new Date().toISOString(),
+          version: 12,
+          entries,
+          chartPrefs: getChartPrefs(),
+          uiPrefs: getUiPrefs()
+        };
+        downloadBlob(JSON.stringify(data, null, 2), `vernyomasnaplo_export_${stamp()}.json`, "application/json");
+        showToast("JSON export kész ✔");
+      });
+
+      exportCsvAllBtn.addEventListener("click", () => {
+        const csv = buildCsv(entries);
+        downloadBlob(csv, `vernyomasnaplo_${stamp()}_osszes.csv`, "text/csv;charset=utf-8");
+        showToast("CSV export (összes) ✔");
+      });
+
+      exportCsvFilteredBtn.addEventListener("click", () => {
+        const filtered = getFiltered().filtered;
+        const csv = buildCsv(filtered);
+        downloadBlob(csv, `vernyomasnaplo_${stamp()}_szurt.csv`, "text/csv;charset=utf-8");
+        showToast("CSV export (szűrt) ✔");
+      });
+
+      importFile.addEventListener("change", async (e) => {
+        const file = e.target.files?.[0];
+        if(!file) return;
+        try{
+          const text = await file.text();
+          const json = JSON.parse(text);
+
+          const incoming = Array.isArray(json) ? json : (json.entries || []);
+          if(!Array.isArray(incoming)) throw new Error("Hibás formátum.");
+
+          const cleaned = incoming.map(normalizeEntry).filter(Boolean);
+          if(!cleaned.length) return showToast("Nincs importálható bejegyzés.");
+
+          const map = new Map(entries.map(x => [x.id, x]));
+          cleaned.forEach(x => map.set(x.id, x));
+          entries = Array.from(map.values()).sort((a,b)=> new Date(b.ts)-new Date(a.ts));
+          save(entries);
+
+          if(json.chartPrefs) setChartPrefs(json.chartPrefs);
+          if(json.uiPrefs) setUiPrefs(json.uiPrefs);
+
+          showToast(`Import kész: ${cleaned.length} db ✔`);
+          exitEditMode();
+          page = 1;
+          syncRangeCustomUI();
+          render();
+        }catch(err){
+          console.error(err);
+          showToast("Import hiba: ellenőrizd a JSON fájlt.");
+        }finally{
+          importFile.value = "";
+        }
+      });
+
+      clearAllBtn.addEventListener("click", () => {
+        if(!confirm("Biztosan törlöd az összes bejegyzést?")) return;
+        entries = [];
+        save(entries);
+        exitEditMode();
+        page = 1;
+        showToast("Minden törölve.");
+        render();
+      });
+
+      seedDemoBtn.addEventListener("click", () => {
+        if(entries.length && !confirm("Már vannak adataid. Hozzáadjam a demo adatokat?")) return;
+        const now = new Date();
+        const demo = [];
+        for(let i=0;i<22;i++){
+          const d = new Date(now);
+          d.setDate(d.getDate() - i);
+          d.setHours(7 + (i%3)*2, 15, 0, 0);
+          const baseSys = 116 + (i%6)*4;
+          const baseDia = 74 + (i%5)*3;
+          demo.push({
+            id: cryptoRandomId(),
+            ts: d.toISOString(),
+            sys: baseSys + (i%2?2:-1),
+            dia: baseDia + (i%2?1:0),
+            pulse: 62 + (i%7)*3,
+            note: i%3===0 ? "Reggel" : (i%4===0 ? "Kávé után" : ""),
+            arm: i%2 ? "Bal" : "Jobb",
+            context: i%5===0 ? "Terhelés után" : "Ülve"
+          });
+        }
+        entries = [...demo, ...entries].sort((a,b)=> new Date(b.ts)-new Date(a.ts));
+        save(entries);
+        showToast("Demo adatok hozzáadva ✔");
+        exitEditMode();
+        page = 1;
+        render();
+      });
+
+      printBtn.addEventListener("click", async () => {
+        await preparePrint();
+        setTimeout(() => window.print(), 50);
+      });
+
+      window.addEventListener("resize", () => {
+        if(chartVisible) drawChart(getFiltered().filtered);
+      });
+
+      chartCanvas.addEventListener("mouseleave", hideTooltip);
+      chartCanvas.addEventListener("touchend", hideTooltip, {passive:true});
+      chartCanvas.addEventListener("mousemove", (ev) => onPointerMove(ev.clientX, ev.clientY));
+      chartCanvas.addEventListener("touchmove", (ev) => {
+        if(!ev.touches || !ev.touches[0]) return;
+        const t = ev.touches[0];
+        onPointerMove(t.clientX, t.clientY);
+      }, {passive:true});
+
+      window.addEventListener("beforeunload", saveUiPrefs);
+
+      function render(){
+        const {filtered, total} = getFiltered();
+        countLabel.textContent = `${total} bejegyzés`;
+        filteredLabel.textContent = filtered.length === total ? "Szűrés: nincs" : `Szűrés: ${filtered.length}/${total}`;
+
+        renderStats(filtered);
+
+        if(chartVisible){
+          chartHint.textContent = filtered.length ? `Megjelenített pontok: ${filtered.length}` : "Nincs adat a grafikonhoz";
+          drawChart(filtered);
+        }else{
+          hideTooltip();
+        }
+
+        renderPager(filtered.length);
+        renderListOnly();
+      }
+
+      function renderStats(arr){
+        const n = arr.length;
+        if(!n){
+          avgSys.textContent = "–";
+          avgDia.textContent = "–";
+          avgPulse.textContent = "–";
+          return;
+        }
+        const sSys = arr.reduce((a,b)=>a + (b.sys||0), 0);
+        const sDia = arr.reduce((a,b)=>a + (b.dia||0), 0);
+        const pulses = arr.map(x=>x.pulse).filter(v=>typeof v==="number" && isFinite(v));
+        const sPulse = pulses.reduce((a,b)=>a+b,0);
+        avgSys.textContent = Math.round(sSys/n);
+        avgDia.textContent = Math.round(sDia/n);
+        avgPulse.textContent = pulses.length ? Math.round(sPulse/pulses.length) : "–";
+      }
+
+      function renderListOnly(){
+        const { filtered } = getFiltered();
+        const paged = getPaged(filtered);
+
+        list.innerHTML = "";
+        if(!paged.items.length){
+          empty.style.display = "block";
+          return;
+        }
+        empty.style.display = "none";
+
+        paged.items.forEach((e) => {
+          const risk = classify(e.sys, e.dia);
+          const alert = isAlert(e.sys, e.dia);
+
+          const wrap = document.createElement("div");
+          wrap.className = `item ${risk.className}`;
+
+          const left = document.createElement("div");
+          left.className = "l";
+
+          const r1 = document.createElement("div");
+          r1.className = "row";
+
+          const b1 = badge(`SYS ${e.sys}`, risk.label);
+          const b2 = badge(`DIA ${e.dia}`, "");
+          const b3 = badge(e.pulse ? `Pulzus ${e.pulse}` : "Pulzus –", "");
+          const t1 = tag(`${e.arm} kar`);
+          const t2 = tag(e.context);
+
+          r1.append(b1,b2,b3,t1,t2);
+
+          if(alert){
+            const a = document.createElement("span");
+            a.className = "alertTag";
+            a.textContent = "⚠ Riasztás";
+            r1.appendChild(a);
+          }
+
+          const r2 = document.createElement("div");
+          r2.className = "row";
+          const when = document.createElement("div");
+          when.className = "mini";
+          when.textContent = formatHu(e.ts);
+          r2.appendChild(when);
+
+          left.append(r1,r2);
+
+          if(e.note){
+            const n = document.createElement("div");
+            n.className = "note";
+            n.textContent = e.note;
+            left.appendChild(n);
+          }
+
+          const right = document.createElement("div");
+          right.className = "r";
+
+          const edit = document.createElement("button");
+          edit.type="button";
+          edit.className = "iconbtn";
+          edit.textContent = "Szerkesztés";
+          edit.addEventListener("click", () => enterEditMode(e));
+
+          const del = document.createElement("button");
+          del.type="button";
+          del.className = "iconbtn d";
+          del.textContent = "Törlés";
+          del.addEventListener("click", () => {
+            if(!confirm("Törlöd ezt a bejegyzést?")) return;
+            entries = entries.filter(x => x.id !== e.id);
+            save(entries);
+            if(editingId === e.id) exitEditMode();
+
+            const { filtered } = getFiltered();
+            const { totalPages } = getPagingMeta(filtered.length);
+            page = clampInt(page, 1, totalPages);
+
+            showToast("Törölve.");
+            render();
+          });
+
+          const copy = document.createElement("button");
+          copy.type="button";
+          copy.className = "iconbtn";
+          copy.textContent = "Másolás";
+          copy.addEventListener("click", async () => {
+            const text =
+              `${formatHu(e.ts)} | ${e.context} | ${e.arm} kar | SYS ${e.sys} / DIA ${e.dia}` +
+              (e.pulse?` | Pulzus ${e.pulse}`:"") +
+              (e.note?` | ${e.note}`:"");
+            try{
+              await navigator.clipboard.writeText(text);
+              showToast("Vágólapra másolva ✔");
+            }catch{
+              showToast("Nem sikerült másolni.");
+            }
+          });
+
+          right.append(copy, edit, del);
+          wrap.append(left, right);
+          list.appendChild(wrap);
+        });
+      }
+
+      function getPagingMeta(totalItems){
+        const perPage = pageSize === Infinity ? (totalItems || 1) : pageSize;
+        const totalPages = Math.max(1, Math.ceil(totalItems / perPage));
+        return { perPage, totalPages };
+      }
+
+      function getPaged(filtered){
+        const totalItems = filtered.length;
+        const { perPage, totalPages } = getPagingMeta(totalItems);
+        page = clampInt(page, 1, totalPages);
+
+        if(pageSize === Infinity){
+          return { items: filtered.slice(), totalItems, totalPages, page };
+        }
+        const start = (page - 1) * perPage;
+        const end = start + perPage;
+        return { items: filtered.slice(start, end), totalItems, totalPages, page };
+      }
+
+      function renderPager(totalItems){
+        const { totalPages } = getPagingMeta(totalItems);
+        pager.innerHTML = "";
+
+        if(totalPages <= 1){
+          pager.style.display = "none";
+          return;
+        }
+        pager.style.display = "flex";
+
+        const mkBtn = (label, onClick, opts={}) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "pbtn";
+          b.textContent = label;
+          if(opts.title) b.title = opts.title;
+          if(opts.disabled) b.disabled = true;
+          if(opts.active) b.classList.add("active");
+          b.addEventListener("click", onClick);
+          return b;
+        };
+
+        pager.appendChild(mkBtn("⏮", () => { page = 1; renderListOnly(); renderPager(totalItems); }, { title:"Első", disabled: page===1 }));
+        pager.appendChild(mkBtn("◀",  () => { page = Math.max(1, page-1); renderListOnly(); renderPager(totalItems); }, { title:"Előző", disabled: page===1 }));
+
+        const pagesToShow = calcPageWindow(page, totalPages, 5);
+        if(pagesToShow[0] > 1){
+          pager.appendChild(mkBtn("1", () => { page=1; renderListOnly(); renderPager(totalItems); }, { active: page===1 }));
+          if(pagesToShow[0] > 2){
+            const dots = document.createElement("span");
+            dots.className = "dots";
+            dots.textContent = "…";
+            pager.appendChild(dots);
+          }
+        }
+
+        pagesToShow.forEach(pn => {
+          pager.appendChild(mkBtn(String(pn), () => { page=pn; renderListOnly(); renderPager(totalItems); }, { active: page===pn }));
+        });
+
+        if(pagesToShow[pagesToShow.length-1] < totalPages){
+          if(pagesToShow[pagesToShow.length-1] < totalPages-1){
+            const dots = document.createElement("span");
+            dots.className = "dots";
+            dots.textContent = "…";
+            pager.appendChild(dots);
+          }
+          pager.appendChild(mkBtn(String(totalPages), () => { page=totalPages; renderListOnly(); renderPager(totalItems); }, { active: page===totalPages }));
+        }
+
+        pager.appendChild(mkBtn("▶",  () => { page = Math.min(totalPages, page+1); renderListOnly(); renderPager(totalItems); }, { title:"Következő", disabled: page===totalPages }));
+        pager.appendChild(mkBtn("⏭", () => { page = totalPages; renderListOnly(); renderPager(totalItems); }, { title:"Utolsó", disabled: page===totalPages }));
+      }
+
+      function calcPageWindow(current, total, windowSize){
+        const w = Math.max(3, windowSize|0);
+        let start = current - Math.floor(w/2);
+        let end = start + w - 1;
+        if(start < 1){ end += (1-start); start = 1; }
+        if(end > total){ start -= (end-total); end = total; }
+        start = Math.max(1, start);
+        const out = [];
+        for(let p=start; p<=end; p++) out.push(p);
+        return out;
+      }
+
+      function getFiltered(){
+        const total = entries.length;
+        const q = search.value.trim().toLowerCase();
+
+        let days = null;
+        if(range.value === "all") days = null;
+        else if(range.value === "custom") days = clampInt(toInt(rangeCustomDays.value), 1, 3650);
+        else days = toInt(range.value);
+
+        const now = new Date();
+        let filtered = entries.slice();
+
+        if(days){
+          const from = new Date(now);
+          from.setDate(from.getDate() - days);
+          filtered = filtered.filter(e => new Date(e.ts) >= from);
+        }
+        if(q){
+          filtered = filtered.filter(e => (e.note||"").toLowerCase().includes(q));
+        }
+
+        filtered.sort((a,b)=> new Date(b.ts) - new Date(a.ts));
+        return { filtered, total };
+      }
+
+      function syncRangeCustomUI(){
+        rangeCustomWrap.style.display = (range.value === "custom") ? "inline-flex" : "none";
+      }
+
+      function enterEditMode(e){
+        editingId = e.id;
+        formTitle.textContent = "Bejegyzés szerkesztése";
+        saveBtn.textContent = "Módosítás mentése";
+        cancelEditBtn.style.display = "inline-flex";
+
+        dt.value = toDatetimeLocal(e.ts);
+        sys.value = e.sys;
+        dia.value = e.dia;
+        pulse.value = (e.pulse ?? "");
+        arm.value = e.arm;
+        context.value = e.context;
+        note.value = e.note || "";
+
+        window.scrollTo({ top: 0, behavior: "smooth" });
+        sys.focus();
+        showToast("Szerkesztés mód ✔");
+      }
+
+      function exitEditMode(){
+        editingId = null;
+        formTitle.textContent = "Új mérés rögzítése";
+        saveBtn.textContent = "Mentés";
+        cancelEditBtn.style.display = "none";
+        sys.value = "";
+        dia.value = "";
+        pulse.value = "";
+        note.value = "";
+      }
+
+      function toDatetimeLocal(iso){
+        const d = new Date(iso);
+        const pad = (n)=>String(n).padStart(2,"0");
+        return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+
+      function setTimePreset(h, m){
+        const base = dt.value ? new Date(dt.value) : new Date();
+        const d = new Date(base);
+        d.setHours(h, m, 0, 0);
+        dt.value = toDatetimeLocal(d.toISOString());
+      }
+
+      function isAlert(sysV, diaV){
+        return (sysV >= 140) || (diaV >= 90);
+      }
+
+      async function preparePrint(){
+        const { filtered } = getFiltered();
+        const summary = computeSummary(filtered);
+        const title = "Vérnyomásnapló – export";
+        const now = new Date();
+
+        const rangeLabel = getRangeLabel();
+        const q = search.value.trim();
+
+        const chartDataUrl = await buildPrintChartDataUrl(filtered, rangeLabel, q);
+
+        const rowsHtml = filtered
+          .slice()
+          .sort((a,b)=> new Date(a.ts) - new Date(b.ts))
+          .map(e => `
+            <tr>
+              <td>${escapeHtml(formatHu(e.ts))}</td>
+              <td>${escapeHtml(e.context)}</td>
+              <td>${escapeHtml(e.arm)}</td>
+              <td><b>${escapeHtml(e.sys)}</b></td>
+              <td><b>${escapeHtml(e.dia)}</b></td>
+              <td>${escapeHtml(e.pulse ?? "")}</td>
+              <td>${isAlert(e.sys,e.dia) ? "⚠ " : ""}${escapeHtml(e.note || "")}</td>
+            </tr>
+          `).join("");
+
+        printArea.innerHTML = `
+          <div class="printDoc">
+            <div class="printHead">
+              <div>
+                <h2>${escapeHtml(title)}</h2>
+                <div class="mutedPrint" style="font-size:12px; margin-top:4px;">
+                  Szűrés: <b>${escapeHtml(rangeLabel)}</b>${q ? ` • Keresés: <b>${escapeHtml(q)}</b>` : ""} • Tételek: <b>${filtered.length}</b>
+                </div>
+              </div>
+              <div class="printMeta">
+                Generálva: <b>${escapeHtml(formatHu(now.toISOString()))}</b>
+              </div>
+            </div>
+
+            <div class="printStats">
+              <div class="pBox"><div class="mutedPrint">Átlag SYS</div><b>${summary.avgSys ?? "–"}</b> mmHg</div>
+              <div class="pBox"><div class="mutedPrint">Átlag DIA</div><b>${summary.avgDia ?? "–"}</b> mmHg</div>
+              <div class="pBox"><div class="mutedPrint">Átlag pulzus</div><b>${summary.avgPulse ?? "–"}</b> BPM</div>
+              <div class="pBox"><div class="mutedPrint">Időszak</div><b>${escapeHtml(summary.period ?? "–")}</b></div>
+            </div>
+
+            <div class="printChartBox">
+              ${chartDataUrl ? `<img src="${chartDataUrl}" alt="Grafikon" />` : `<div class="mutedPrint">Nincs elég adat a grafikonhoz.</div>`}
+            </div>
+
+            <table class="printTable">
+              <thead>
+                <tr>
+                  <th>Dátum/idő</th>
+                  <th>Helyzet</th>
+                  <th>Kar</th>
+                  <th>SYS</th>
+                  <th>DIA</th>
+                  <th>Pulzus</th>
+                  <th>Megjegyzés</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${rowsHtml || `<tr><td colspan="7">Nincs adat.</td></tr>`}
+              </tbody>
+            </table>
+
+            <div class="mutedPrint" style="font-size:11px; margin-top:10px;">
+              Megjegyzés: a napló információs célú; orvosi döntéshez egyeztess szakemberrel.
+            </div>
+          </div>
+        `;
+      }
+
+      function getRangeLabel(){
+        if(range.value === "all") return "Összes";
+        if(range.value === "custom"){
+          const d = clampInt(toInt(rangeCustomDays.value), 1, 3650);
+          return `Utolsó ${d} nap (egyéni)`;
+        }
+        const days = toInt(range.value);
+        return `Utolsó ${days} nap`;
+      }
+
+      function computeSummary(arr){
+        if(!arr.length) return { avgSys:null, avgDia:null, avgPulse:null, period:null };
+        const n = arr.length;
+        const sSys = arr.reduce((a,b)=>a + (b.sys||0), 0);
+        const sDia = arr.reduce((a,b)=>a + (b.dia||0), 0);
+        const pulses = arr.map(x=>x.pulse).filter(v=>typeof v==="number" && isFinite(v));
+        const sPulse = pulses.reduce((a,b)=>a+b,0);
+        const sorted = arr.slice().sort((a,b)=> new Date(a.ts)-new Date(b.ts));
+        const from = sorted[0].ts;
+        const to = sorted[sorted.length-1].ts;
+        return {
+          avgSys: Math.round(sSys/n),
+          avgDia: Math.round(sDia/n),
+          avgPulse: pulses.length ? Math.round(sPulse/pulses.length) : null,
+          period: `${formatShort(from)} – ${formatShort(to)}`
+        };
+      }
+
+      // ✅ PRINT grafikon kép: tengely-feliratok + skálák + SZÍNMAGYARÁZAT A GRAFIKON ALATT
+      async function buildPrintChartDataUrl(filtered, rangeLabel, q){
+        if(!filtered || filtered.length < 2) return null;
+
+        const chartOnly = document.createElement("canvas");
+        chartOnly.width = 1400;
+        chartOnly.height = 560;
+        internalDrawChart(chartOnly, filtered, 1, true);
+
+        // kimenet nagyobb: cím + grafikon + legend (alul)
+        const out = document.createElement("canvas");
+        out.width = 1400;
+        out.height = 860;
+
+        const ctx = out.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0,0,out.width,out.height);
+
+        // cím
+        ctx.fillStyle = "#000";
+        ctx.textAlign = "center";
+        ctx.font = "bold 28px Arial";
+        ctx.fillText("Vérnyomás trend grafikon", out.width/2, 40);
+
+        ctx.font = "16px Arial";
+		const sub = `${rangeLabel}${q ? " • Keresés: " + q : ""}`;
+		ctx.fillText(sub, out.width/2, 68);;
+
+        // grafikon
+        ctx.drawImage(chartOnly, 0, 110);
+
+        // ✅ legend a grafikon ALATT a képen belül
+        const legendTop = 110 + 560 + 30; // chart alja + térköz
+        drawPrintLegend(ctx, 260, legendTop);
+
+        // keret
+        ctx.strokeStyle = "#bbbbbb";
+        ctx.lineWidth = 2;
+        ctx.strokeRect(10, 10, out.width-20, out.height-20);
+
+        try{ return out.toDataURL("image/png"); }catch{ return null; }
+      }
+
+      function drawPrintLegend(ctx, xStart, y){
+        const items = [
+          { label: "SYS (mmHg)", color: "rgba(110,231,255,.95)" },
+          { label: "DIA (mmHg)", color: "rgba(167,139,250,.95)" },
+          { label: "Pulzus (BPM)", color: "rgba(62,230,160,.95)" },
+          { label: "Célzóna", color: "rgba(255,204,102,.45)", border: "rgba(255,204,102,.85)" }
+        ];
+
+        ctx.save();
+        ctx.textAlign = "left";
+        ctx.textBaseline = "middle";
+        ctx.fillStyle = "#111";
+        ctx.font = "bold 16px Arial";
+        ctx.fillText("Színmagyarázat:", xStart, y);
+
+        ctx.font = "14px Arial";
+        let x = xStart;
+        let yy = y + 26;
+
+        for(const it of items){
+          // doboz
+          ctx.fillStyle = it.color;
+          ctx.fillRect(x, yy-8, 18, 18);
+          ctx.strokeStyle = it.border || "#666";
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x, yy-8, 18, 18);
+
+          // szöveg
+          ctx.fillStyle = "#111";
+          ctx.fillText(it.label, x + 26, yy + 1);
+
+          x += 220;
+          // sortörés, ha kell (biztonság)
+          if(x > 1200){
+            x = xStart;
+            yy += 26;
+          }
+        }
+        ctx.restore();
+      }
+
+      function stamp(){ return new Date().toISOString().slice(0,10); }
+
+      function buildCsv(arr){
+        const BOM = "\uFEFF";
+        const header = ["DatumIdo","SYS","DIA","Pulzus","Kar","Helyzet","Riasztas","Megjegyzes"];
+        const rows = arr
+          .slice()
+          .sort((a,b)=> new Date(a.ts) - new Date(b.ts))
+          .map(e => ([
+            formatHu(e.ts),
+            e.sys,
+            e.dia,
+            (e.pulse ?? ""),
+            e.arm,
+            e.context,
+            isAlert(e.sys,e.dia) ? "Igen" : "Nem",
+            (e.note || "")
+          ].map(csvEscape).join(",")));
+
+        return BOM + header.join(",") + "\n" + rows.join("\n");
+      }
+      function csvEscape(v){
+        const s = String(v ?? "");
+        if(/[",\n\r]/.test(s)) return `"${s.replace(/"/g,'""')}"`;
+        return s;
+      }
+      function downloadBlob(text, filename, mime){
+        const blob = new Blob([text], {type:mime});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      }
+
+      function save(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
+
+      function loadAny(){
+        const candidates = [STORAGE_KEY, "bp_log_v11", "bp_log_v10", "bp_log_v9", "bp_log_v8", "bp_log_v7", "bp_log_v6", "bp_log_v5", "bp_log_v4", "bp_log_v3", "bp_log_v2", "bp_log_v1"];
+        for(const key of candidates){
+          try{
+            const raw = localStorage.getItem(key);
+            if(!raw) continue;
+            const arr = JSON.parse(raw);
+            const fixed = Array.isArray(arr) ? arr.map(normalizeEntry).filter(Boolean) : [];
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(fixed));
+            return fixed;
+          }catch{}
+        }
+        return [];
+      }
+
+      function normalizeEntry(e){
+        try{
+          if(!e) return null;
+          const id = String(e.id || cryptoRandomId());
+          const ts = new Date(e.ts || e.date || Date.now()).toISOString();
+          const sys = toInt(e.sys);
+          const dia = toInt(e.dia);
+          const pulse = (e.pulse===null || e.pulse===undefined || e.pulse==="") ? null : toInt(e.pulse);
+          if(!isFinite(sys) || !isFinite(dia)) return null;
+          return {
+            id, ts, sys, dia,
+            pulse: (pulse && isFinite(pulse)) ? pulse : null,
+            note: String(e.note || "").trim(),
+            arm: (e.arm === "Jobb" || e.arm === "Bal") ? e.arm : "Bal",
+            context: String(e.context || "Ülve")
+          };
+        }catch{
+          return null;
+        }
+      }
+
+      function getUiPrefs(){
+        return {
+          pageSize: pageSize === Infinity ? "all" : String(pageSize),
+          range: range.value,
+          rangeCustomDays: String(clampInt(toInt(rangeCustomDays.value), 1, 3650) || 14)
+        };
+      }
+      function setUiPrefs(p){
+        if(!p) return;
+
+        const ps = (p.pageSize ?? "5");
+        pageSizeSel.value = String(ps);
+        pageSize = (String(ps) === "all") ? Infinity : clampInt(toInt(ps), 1, 9999);
+
+        const rv = String(p.range ?? "all");
+        range.value = ["all","7","30","custom"].includes(rv) ? rv : "all";
+        const cd = clampInt(toInt(p.rangeCustomDays ?? "14"), 1, 3650);
+        rangeCustomDays.value = String(cd);
+
+        syncRangeCustomUI();
+        saveUiPrefs();
+      }
+      function saveUiPrefs(){
+        try{ localStorage.setItem(UI_KEY, JSON.stringify(getUiPrefs())); }catch{}
+      }
+      function loadUiPrefs(){
+        try{
+          const raw = localStorage.getItem(UI_KEY);
+          if(!raw){
+            pageSizeSel.value = "5"; pageSize = 5;
+            return;
+          }
+          setUiPrefs(JSON.parse(raw));
+        }catch{
+          pageSizeSel.value = "5"; pageSize = 5;
+        }
+      }
+
+      function setNow(show=false){
+        const d = new Date();
+        const pad = (n)=>String(n).padStart(2,"0");
+        dt.value = `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        if(show) showToast("Idő kitöltve ✔");
+      }
+
+      function toInt(v){
+        const n = parseInt(String(v).trim(), 10);
+        return Number.isFinite(n) ? n : NaN;
+      }
+      function clampInt(v, lo, hi){
+        const n = parseInt(v,10);
+        if(!Number.isFinite(n)) return lo;
+        return Math.max(lo, Math.min(hi, n));
+      }
+
+      function showToast(msg){
+        toast.textContent = msg;
+        toast.style.display = "block";
+        clearTimeout(showToast._t);
+        showToast._t = setTimeout(()=> toast.style.display="none", 2200);
+      }
+
+      function cryptoRandomId(){
+        const a = new Uint32Array(2);
+        (crypto?.getRandomValues ? crypto.getRandomValues(a) : (a[0]=Math.random()*2**32, a[1]=Math.random()*2**32));
+        return "bp_" + a[0].toString(16).padStart(8,"0") + a[1].toString(16).padStart(8,"0");
+      }
+
+      function formatHu(iso){
+        const d = new Date(iso);
+        const pad = (n)=>String(n).padStart(2,"0");
+        return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+      }
+      function formatShort(iso){
+        const d = new Date(iso);
+        const pad = (n)=>String(n).padStart(2,"0");
+        return `${d.getFullYear()}.${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+      }
+      function formatDayShort(iso){
+        const d = new Date(iso);
+        const pad = (n)=>String(n).padStart(2,"0");
+        return `${pad(d.getMonth()+1)}.${pad(d.getDate())}`;
+      }
+
+      function escapeHtml(s){
+        return String(s ?? "")
+          .replaceAll("&","&amp;")
+          .replaceAll("<","&lt;")
+          .replaceAll(">","&gt;")
+          .replaceAll('"',"&quot;")
+          .replaceAll("'","&#039;");
+      }
+
+      function classify(sys, dia){
+        if(sys < 130 && dia < 85) return { className:"risk-ok", label:"OK" };
+        if(sys < 140 && dia < 90) return { className:"risk-warn", label:"Emelkedett" };
+        return { className:"risk-high", label:"Magas" };
+      }
+
+      function badge(text, hint){
+        const el = document.createElement("span");
+        el.className = "badge";
+        el.textContent = text;
+        if(hint){
+          const h = document.createElement("span");
+          h.className="tag";
+          h.textContent = hint;
+          el.appendChild(h);
+        }
+        return el;
+      }
+      function tag(text){
+        const el = document.createElement("span");
+        el.className = "tag";
+        el.textContent = text;
+        return el;
+      }
+
+      function getChartPrefs(){
+        return {
+          showPulse: !!showPulseChk.checked,
+          showZone: !!showZoneChk.checked,
+          snapNearest: !!snapNearestChk.checked,
+          zoneSysLo: toInt(zoneSysLo.value),
+          zoneSysHi: toInt(zoneSysHi.value),
+          zoneDiaLo: toInt(zoneDiaLo.value),
+          zoneDiaHi: toInt(zoneDiaHi.value),
+        };
+      }
+      function setChartPrefs(p){
+        try{
+          if(p.showPulse !== undefined) showPulseChk.checked = !!p.showPulse;
+          if(p.showZone !== undefined) showZoneChk.checked = !!p.showZone;
+          if(p.snapNearest !== undefined) snapNearestChk.checked = !!p.snapNearest;
+
+          if(isFinite(toInt(p.zoneSysLo))) zoneSysLo.value = String(toInt(p.zoneSysLo));
+          if(isFinite(toInt(p.zoneSysHi))) zoneSysHi.value = String(toInt(p.zoneSysHi));
+          if(isFinite(toInt(p.zoneDiaLo))) zoneDiaLo.value = String(toInt(p.zoneDiaLo));
+          if(isFinite(toInt(p.zoneDiaHi))) zoneDiaHi.value = String(toInt(p.zoneDiaHi));
+
+          persistChartPrefs();
+        }catch{}
+      }
+      function persistChartPrefs(){
+        try{ localStorage.setItem(PREF_KEY, JSON.stringify(getChartPrefs())); }catch{}
+      }
+      function loadChartPrefs(){
+        try{
+          const raw = localStorage.getItem(PREF_KEY);
+          if(!raw) return;
+          setChartPrefs(JSON.parse(raw));
+        }catch{}
+      }
+
+      function drawChart(filtered){
+        internalDrawChart(chartCanvas, filtered, null, false);
+      }
+
+      // ✅ NYOMTATÁSBAN SÖTÉT SZÖVEGEK + „Érték (mmHg/BPM)” FELIRAT
+      function internalDrawChart(canvas, filteredDesc, forceDpr, isPrint){
+        const ctx = canvas.getContext("2d");
+        if(!ctx) return;
+
+        const dpr = forceDpr ?? Math.max(1, Math.floor(window.devicePixelRatio || 1));
+
+        if(forceDpr === null){
+          const cssW = canvas.clientWidth || 800;
+          const cssH = canvas.clientHeight || 300;
+          const targetW = Math.floor(cssW * dpr);
+          const targetH = Math.floor(cssH * dpr);
+          if(canvas.width !== targetW || canvas.height !== targetH){
+            canvas.width = targetW;
+            canvas.height = targetH;
+          }
+        }
+
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+        if(isPrint){
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0,0,canvas.width,canvas.height);
+        }
+
+        if(!filteredDesc || filteredDesc.length < 2){
+          if(canvas === chartCanvas) chartState = null;
+          drawEmptyChart(ctx, canvas.width, canvas.height, dpr, filteredDesc?.length || 0, isPrint);
+          if(canvas === chartCanvas) hideTooltip();
+          return;
+        }
+
+        const data = filteredDesc.slice().sort((a,b)=> new Date(a.ts)-new Date(b.ts));
+
+        const padL = 84 * dpr;
+        const padR = 18 * dpr;
+        const padT = 18 * dpr;
+        const padB = (isPrint ? 84 : 92) * dpr;
+
+        const W = canvas.width, H = canvas.height;
+        const plotW = W - padL - padR;
+        const plotH = H - padT - padB;
+
+        const prefs = getChartPrefs();
+        const showPulse = prefs.showPulse;
+
+        const vals = [];
+        for(const e of data){ vals.push(e.sys, e.dia); }
+        if(showPulse){
+          for(const e of data){
+            if(typeof e.pulse === "number" && isFinite(e.pulse)) vals.push(e.pulse);
+          }
+        }
+
+        let minV = Math.min(...vals);
+        let maxV = Math.max(...vals);
+
+        const span = Math.max(10, maxV - minV);
+        minV = Math.floor((minV - span*0.14) / 5) * 5;
+        maxV = Math.ceil((maxV + span*0.14) / 5) * 5;
+
+        const ticks = niceTicks(minV, maxV, 5);
+        minV = ticks.min;
+        maxV = ticks.max;
+
+        const xAt = (i) => padL + (i/(data.length-1)) * plotW;
+        const yAt = (v) => padT + (1 - (v - minV) / (maxV - minV)) * plotH;
+
+        const sysPts = data.map((e,i)=>({ i, x:xAt(i), y:yAt(e.sys) }));
+        const diaPts = data.map((e,i)=>({ i, x:xAt(i), y:yAt(e.dia) }));
+        const pulsePts = data.map((e,i)=>({
+          i, x:xAt(i),
+          y: (typeof e.pulse === "number" && isFinite(e.pulse)) ? yAt(e.pulse) : null
+        }));
+
+        if(prefs.showZone){
+          const z = getZoneSafe();
+          const band1 = isPrint ? "rgba(255,204,102,.18)" : "rgba(255,204,102,.10)";
+          const band2 = isPrint ? "rgba(255,204,102,.14)" : "rgba(255,204,102,.08)";
+          drawBand(ctx, padL, padT, plotW, plotH, yAt(z.sysHi), yAt(z.sysLo), band1);
+          drawBand(ctx, padL, padT, plotW, plotH, yAt(z.diaHi), yAt(z.diaLo), band2);
+        }
+
+        const C = isPrint ? {
+          grid: "#e6e6e6",
+          border: "#8f8f8f",
+          text: "#222",
+          textSoft: "#444"
+        } : {
+          grid: "rgba(255,255,255,.10)",
+          border: "rgba(255,255,255,.14)",
+          text: "rgba(255,255,255,.55)",
+          textSoft: "rgba(255,255,255,.45)"
+        };
+
+        ctx.save();
+        ctx.lineWidth = 1 * dpr;
+        ctx.strokeStyle = C.grid;
+        ctx.fillStyle = C.text;
+        ctx.font = `${12*dpr}px ${getFontFamily()}`;
+
+        for(const t of ticks.values){
+          const y = yAt(t);
+          ctx.beginPath();
+          ctx.moveTo(padL, y);
+          ctx.lineTo(W - padR, y);
+          ctx.stroke();
+
+          ctx.save();
+          ctx.translate(padL - 16*dpr, y);
+          ctx.rotate(-Math.PI/2);
+          ctx.textAlign = "center";
+          ctx.textBaseline = "middle";
+          ctx.fillText(String(t), 0, 0);
+          ctx.restore();
+        }
+
+        ctx.strokeStyle = C.border;
+        ctx.strokeRect(padL, padT, plotW, plotH);
+
+        const labelEvery = calcLabelEvery(data.length);
+        ctx.fillStyle = C.textSoft;
+        ctx.textBaseline = "top";
+
+        for(let i=0;i<data.length;i++){
+          if(i % labelEvery !== 0 && i !== data.length-1) continue;
+          const x = xAt(i);
+          const s = formatDayShort(data[i].ts);
+
+          ctx.save();
+          ctx.translate(x, padT + plotH + 12*dpr);
+          ctx.rotate(-Math.PI/4);
+          ctx.textAlign = "right";
+          ctx.fillText(s, 0, 0);
+          ctx.restore();
+        }
+
+        // ✅ tengely feliratok
+        ctx.fillStyle = C.text;
+        ctx.font = `700 ${12*dpr}px ${getFontFamily()}`;
+
+        ctx.save();
+        ctx.translate(24*dpr, padT + plotH/2);
+        ctx.rotate(-Math.PI/2);
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText("Érték (mmHg/BPM)", 0, 0);
+        ctx.restore();
+
+        ctx.save();
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        ctx.fillText("Nap", padL + plotW/2, padT + plotH + 58*dpr);
+        ctx.restore();
+
+        ctx.restore();
+
+        const baselineY = padT + plotH;
+        drawSeries(ctx, sysPts, { stroke:"rgba(110,231,255,.95)", fill:"rgba(110,231,255,.18)" }, dpr, baselineY);
+        drawSeries(ctx, diaPts, { stroke:"rgba(167,139,250,.95)", fill:"rgba(167,139,250,.14)" }, dpr, baselineY);
+        if(showPulse) drawSeriesWithGaps(ctx, pulsePts, { stroke:"rgba(62,230,160,.95)", fill:"rgba(62,230,160,.10)" }, dpr, baselineY);
+
+        drawPoints(ctx, sysPts.map(p=>({x:p.x,y:p.y})), "rgba(110,231,255,.95)", dpr);
+        drawPoints(ctx, diaPts.map(p=>({x:p.x,y:p.y})), "rgba(167,139,250,.95)", dpr);
+        if(showPulse) drawPoints(ctx, pulsePts.filter(p=>p.y!==null).map(p=>({x:p.x,y:p.y})), "rgba(62,230,160,.95)", dpr, 2.2);
+
+        if(canvas === chartCanvas){
+          chartState = { dpr, data, sysPts, diaPts, pulsePts };
+        }
+      }
+
+      function calcLabelEvery(n){
+        if(n <= 10) return 1;
+        if(n <= 20) return 2;
+        if(n <= 35) return 3;
+        if(n <= 50) return 5;
+        return Math.ceil(n / 10);
+      }
+
+      function getZoneSafe(){
+        let sLo = toInt(zoneSysLo.value), sHi = toInt(zoneSysHi.value);
+        let dLo = toInt(zoneDiaLo.value), dHi = toInt(zoneDiaHi.value);
+
+        if(!isFinite(sLo)) sLo = 110;
+        if(!isFinite(sHi)) sHi = 130;
+        if(!isFinite(dLo)) dLo = 70;
+        if(!isFinite(dHi)) dHi = 85;
+
+        if(sLo > sHi) [sLo, sHi] = [sHi, sLo];
+        if(dLo > dHi) [dLo, dHi] = [dHi, dLo];
+
+        sLo = clamp(sLo, 60, 260); sHi = clamp(sHi, 60, 260);
+        dLo = clamp(dLo, 40, 160); dHi = clamp(dHi, 40, 160);
+
+        return { sysLo:sLo, sysHi:sHi, diaLo:dLo, diaHi:dHi };
+      }
+      function clamp(v, lo, hi){ return Math.max(lo, Math.min(hi, v)); }
+
+      function drawBand(ctx, x, y, w, h, yTop, yBot, color){
+        const top = Math.max(y, Math.min(y + h, Math.min(yTop, yBot)));
+        const bot = Math.max(y, Math.min(y + h, Math.max(yTop, yBot)));
+        ctx.save();
+        ctx.fillStyle = color;
+        ctx.fillRect(x, top, w, bot - top);
+        ctx.restore();
+      }
+
+      function drawEmptyChart(ctx, W, H, dpr, n, isPrint){
+        ctx.save();
+        ctx.fillStyle = isPrint ? "#333" : "rgba(255,255,255,.55)";
+        ctx.font = `${13*dpr}px ${getFontFamily()}`;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        const msg = n === 1 ? "Legalább 2 mérés kell a trendhez." : "Nincs adat a grafikonhoz.";
+        ctx.fillText(msg, W/2, H/2);
+        ctx.restore();
+      }
+
+      function drawSeries(ctx, pts, colors, dpr, baselineY){
+        ctx.save();
+        ctx.lineWidth = 2.25 * dpr;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.strokeStyle = colors.stroke;
+
+        ctx.beginPath();
+        for(let i=0;i<pts.length;i++){
+          const p = pts[i];
+          if(i===0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        ctx.stroke();
+
+        ctx.fillStyle = colors.fill;
+        ctx.beginPath();
+        for(let i=0;i<pts.length;i++){
+          const p = pts[i];
+          if(i===0) ctx.moveTo(p.x, p.y);
+          else ctx.lineTo(p.x, p.y);
+        }
+        const last = pts[pts.length-1];
+        const first = pts[0];
+        ctx.lineTo(last.x, baselineY);
+        ctx.lineTo(first.x, baselineY);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+      }
+
+      function drawSeriesWithGaps(ctx, ptsMaybeNull, colors, dpr, baselineY){
+        const segments = [];
+        let seg = [];
+        for(const p of ptsMaybeNull){
+          if(p.y === null){
+            if(seg.length >= 2) segments.push(seg);
+            seg = [];
+          }else{
+            seg.push({x:p.x,y:p.y});
+          }
+        }
+        if(seg.length >= 2) segments.push(seg);
+
+        ctx.save();
+        ctx.lineWidth = 2.1 * dpr;
+        ctx.lineJoin = "round";
+        ctx.lineCap = "round";
+        ctx.strokeStyle = colors.stroke;
+        ctx.fillStyle = colors.fill;
+
+        for(const s of segments){
+          ctx.beginPath();
+          for(let i=0;i<s.length;i++){
+            if(i===0) ctx.moveTo(s[i].x, s[i].y);
+            else ctx.lineTo(s[i].x, s[i].y);
+          }
+          ctx.stroke();
+
+          ctx.beginPath();
+          for(let i=0;i<s.length;i++){
+            if(i===0) ctx.moveTo(s[i].x, s[i].y);
+            else ctx.lineTo(s[i].x, s[i].y);
+          }
+          const last = s[s.length-1];
+          const first = s[0];
+          ctx.lineTo(last.x, baselineY);
+          ctx.lineTo(first.x, baselineY);
+          ctx.closePath();
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function drawPoints(ctx, pts, color, dpr, r=2.6){
+        ctx.save();
+        ctx.fillStyle = color;
+        for(const p of pts){
+          ctx.beginPath();
+          ctx.arc(p.x, p.y, r*dpr, 0, Math.PI*2);
+          ctx.fill();
+        }
+        ctx.restore();
+      }
+
+      function niceTicks(min, max, targetCount){
+        const span = Math.max(1, max - min);
+        const rough = span / targetCount;
+        const step = niceStep(rough);
+        const niceMin = Math.floor(min / step) * step;
+        const niceMax = Math.ceil(max / step) * step;
+
+        const vals = [];
+        for(let v = niceMin; v <= niceMax + 1e-9; v += step){
+          vals.push(Math.round(v));
+        }
+        while(vals.length > 8){
+          const reduced = [];
+          for(let i=0;i<vals.length;i+=2) reduced.push(vals[i]);
+          if(reduced[reduced.length-1] !== vals[vals.length-1]) reduced.push(vals[vals.length-1]);
+          vals.length = 0;
+          vals.push(...reduced);
+        }
+        return { min: niceMin, max: niceMax, values: vals };
+      }
+
+      function niceStep(x){
+        const exp = Math.floor(Math.log10(x));
+        const f = x / Math.pow(10, exp);
+        let nf;
+        if(f <= 1) nf = 1;
+        else if(f <= 2) nf = 2;
+        else if(f <= 5) nf = 5;
+        else nf = 10;
+        return nf * Math.pow(10, exp);
+      }
+
+      function getFontFamily(){
+        return 'ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial';
+      }
+
+      function onPointerMove(clientX, clientY){
+        if(!chartVisible || !chartState) return;
+
+        const rect = chartCanvas.getBoundingClientRect();
+        const xCss = clientX - rect.left;
+        const yCss = clientY - rect.top;
+        if(xCss < 0 || yCss < 0 || xCss > rect.width || yCss > rect.height){
+          hideTooltip(); return;
+        }
+
+        const dpr = chartState.dpr;
+        const x = xCss * dpr;
+
+        const pts = chartState.sysPts;
+        if(!pts || pts.length < 2) return;
+
+        let nearest = 0;
+        let best = Infinity;
+        for(let i=0;i<pts.length;i++){
+          const dx = Math.abs(pts[i].x - x);
+          if(dx < best){ best = dx; nearest = i; }
+        }
+        if(!snapNearestChk.checked){
+          const threshold = 16 * dpr;
+          if(best > threshold){ hideTooltip(); return; }
+        }
+
+        const e = chartState.data[nearest];
+        tooltip.innerHTML = buildTooltipHtml(e);
+
+        const tipW = 260;
+        const tipH = 110;
+        let left = xCss + 14;
+        let top = yCss - 18 - tipH;
+
+        if(left + tipW > rect.width - 8) left = rect.width - tipW - 8;
+        if(left < 8) left = 8;
+        if(top < 8) top = yCss + 14;
+        if(top + tipH > rect.height - 8) top = rect.height - tipH - 8;
+
+        tooltip.style.left = left + "px";
+        tooltip.style.top = top + "px";
+        tooltip.style.display = "block";
+      }
+
+      function buildTooltipHtml(e){
+        const sysC = "rgba(110,231,255,.95)";
+        const diaC = "rgba(167,139,250,.95)";
+        const pulC = "rgba(62,230,160,.95)";
+        const parts = [];
+        parts.push(`<div class="t">${escapeHtml(formatHu(e.ts))} • ${escapeHtml(e.context)} • ${escapeHtml(e.arm)} kar</div>`);
+        parts.push(`<div class="row">
+          <span class="b"><span class="s" style="background:${sysC}"></span> SYS ${escapeHtml(e.sys)}</span>
+          <span class="b"><span class="s" style="background:${diaC}"></span> DIA ${escapeHtml(e.dia)}</span>
+        </div>`);
+        if(showPulseChk.checked){
+          parts.push(`<div class="row" style="margin-top:6px">
+            <span class="b"><span class="s" style="background:${pulC}"></span> Pulzus ${escapeHtml((e.pulse ?? "–"))}</span>
+          </div>`);
+        }
+        if(isAlert(e.sys,e.dia)){
+          parts.push(`<div class="t" style="margin-top:6px; color:#ffd0d0; font-weight:800;">⚠ Riasztás (SYS ≥ 140 vagy DIA ≥ 90)</div>`);
+        }
+        if(e.note){
+          parts.push(`<div class="t" style="margin-top:6px; opacity:.9;">${escapeHtml(e.note)}</div>`);
+        }
+        return parts.join("");
+      }
+
+      function hideTooltip(){ tooltip.style.display = "none"; }
+
+    })();
+  </script>
+</body>
+</html>
