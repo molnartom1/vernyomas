@@ -39,7 +39,6 @@
     }
     .title{display:flex;flex-direction:column;gap:6px;}
     h1{margin:0;font-size:clamp(22px,2.6vw,34px);letter-spacing:.2px;}
-    .sub{margin:0;color:var(--muted);max-width:78ch;line-height:1.45;}
 
     .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:start;}
     @media (max-width:920px){.grid{grid-template-columns:1fr;}}
@@ -82,7 +81,13 @@
       background:rgba(0,0,0,.18);
       color:var(--text);
       outline:none;
+      font-size:14px; /* desktop */
     }
+    /* ✅ iOS/Safari zoom FIX: mobilon 16px felett nem zoomol rá input fókusznál */
+    @media (max-width: 640px){
+      input,textarea,select{ font-size:16px; }
+    }
+
     input:focus,textarea:focus,select:focus{
       border-color:rgba(110,231,255,.55);
       box-shadow:0 0 0 4px rgba(110,231,255,.12);
@@ -271,7 +276,6 @@
       touch-action:none;
     }
 
-    /* ✅ plusz legend a grafikon ALATT (képernyőn) */
     .legendBelow{
       margin-top:10px;
       display:flex;
@@ -408,7 +412,6 @@
       font-size:13px;
       font-weight:700;
     }
-    .hint{color:var(--muted);font-size:12px;line-height:1.4;margin-top:10px;}
 
     .risk-ok{border-color:rgba(62,230,160,.28);}
     .risk-ok .badge{border-color:rgba(62,230,160,.35);}
@@ -450,10 +453,7 @@
     <header>
       <div class="title">
         <h1>Vérnyomásnapló</h1>
-        <p class="sub">
-          Egyéni nap-szűrés (pl. 14 nap) • Grafikon a nyomtatási/PDF nézetben is • Lapozás + oldalméret • Riasztás jelölés.
-          <br><span style="opacity:.9">Grafikon: <b>Nap</b> alul, <b>Érték (mmHg/BPM)</b> bal oldalt (függőlegesen).</span>
-        </p>
+        <!-- ✅ Alcím/magyarázatok törölve -->
       </div>
       <div class="pill"><span class="dot"></span> Online (helyi tárolás)</div>
     </header>
@@ -528,10 +528,6 @@
               </label>
 
               <button type="button" class="btn-danger" id="clearAll">Összes törlése</button>
-            </div>
-
-            <div class="span2 hint">
-              Riasztás: <b>SYS ≥ 140</b> vagy <b>DIA ≥ 90</b> → ⚠ jelölés.
             </div>
           </form>
         </div>
@@ -634,16 +630,11 @@
               <div class="tooltip" id="tooltip"></div>
             </div>
 
-            <!-- ✅ SZÍNMAGYARÁZAT A GRAFIKON ALATT (képernyőn) -->
             <div class="legendBelow" aria-label="Színmagyarázat">
               <span class="it"><span class="sq" style="background:rgba(110,231,255,.95)"></span> SYS (mmHg)</span>
               <span class="it"><span class="sq" style="background:rgba(167,139,250,.95)"></span> DIA (mmHg)</span>
               <span class="it"><span class="sq" style="background:rgba(62,230,160,.95)"></span> Pulzus (BPM)</span>
               <span class="it"><span class="sq" style="background:rgba(255,204,102,.45)"></span> Célzóna</span>
-            </div>
-
-            <div class="hint">
-              Nyomtatás/PDF: a grafikon <b>képként</b> bekerül, és a képen is lesz: <b>cím</b>, <b>Nap</b>, <b>Érték (mmHg/BPM)</b>, dátumok + skála + <b>színmagyarázat</b>.
             </div>
           </div>
 
@@ -661,9 +652,9 @@
 
   <script>
     (function(){
-      const STORAGE_KEY = "bp_log_v12";
-      const PREF_KEY = "bp_chart_prefs_v8";
-      const UI_KEY = "bp_ui_prefs_v7";
+      const STORAGE_KEY = "bp_log_v13";
+      const PREF_KEY = "bp_chart_prefs_v9";
+      const UI_KEY = "bp_ui_prefs_v8";
 
       const $ = (id) => document.getElementById(id);
 
@@ -860,7 +851,7 @@
       exportJsonBtn.addEventListener("click", () => {
         const data = {
           exportedAt: new Date().toISOString(),
-          version: 12,
+          version: 13,
           entries,
           chartPrefs: getChartPrefs(),
           uiPrefs: getUiPrefs()
@@ -1379,7 +1370,7 @@
         };
       }
 
-      // ✅ PRINT grafikon kép: tengely-feliratok + skálák + SZÍNMAGYARÁZAT A GRAFIKON ALATT
+      // ✅ Print képen: a „sárga jelölt” extra szöveg NINCS (csak range+keresés marad)
       async function buildPrintChartDataUrl(filtered, rangeLabel, q){
         if(!filtered || filtered.length < 2) return null;
 
@@ -1388,7 +1379,6 @@
         chartOnly.height = 560;
         internalDrawChart(chartOnly, filtered, 1, true);
 
-        // kimenet nagyobb: cím + grafikon + legend (alul)
         const out = document.createElement("canvas");
         out.width = 1400;
         out.height = 860;
@@ -1397,24 +1387,20 @@
         ctx.fillStyle = "#ffffff";
         ctx.fillRect(0,0,out.width,out.height);
 
-        // cím
         ctx.fillStyle = "#000";
         ctx.textAlign = "center";
         ctx.font = "bold 28px Arial";
         ctx.fillText("Vérnyomás trend grafikon", out.width/2, 40);
 
         ctx.font = "16px Arial";
-		const sub = `${rangeLabel}${q ? " • Keresés: " + q : ""}`;
-		ctx.fillText(sub, out.width/2, 68);;
+        const sub = `${rangeLabel}${q ? " • Keresés: " + q : ""}`;
+        ctx.fillText(sub, out.width/2, 68);
 
-        // grafikon
         ctx.drawImage(chartOnly, 0, 110);
 
-        // ✅ legend a grafikon ALATT a képen belül
-        const legendTop = 110 + 560 + 30; // chart alja + térköz
+        const legendTop = 110 + 560 + 30;
         drawPrintLegend(ctx, 260, legendTop);
 
-        // keret
         ctx.strokeStyle = "#bbbbbb";
         ctx.lineWidth = 2;
         ctx.strokeRect(10, 10, out.width-20, out.height-20);
@@ -1442,19 +1428,16 @@
         let yy = y + 26;
 
         for(const it of items){
-          // doboz
           ctx.fillStyle = it.color;
           ctx.fillRect(x, yy-8, 18, 18);
           ctx.strokeStyle = it.border || "#666";
           ctx.lineWidth = 1;
           ctx.strokeRect(x, yy-8, 18, 18);
 
-          // szöveg
           ctx.fillStyle = "#111";
           ctx.fillText(it.label, x + 26, yy + 1);
 
           x += 220;
-          // sortörés, ha kell (biztonság)
           if(x > 1200){
             x = xStart;
             yy += 26;
@@ -1504,7 +1487,7 @@
       function save(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
 
       function loadAny(){
-        const candidates = [STORAGE_KEY, "bp_log_v11", "bp_log_v10", "bp_log_v9", "bp_log_v8", "bp_log_v7", "bp_log_v6", "bp_log_v5", "bp_log_v4", "bp_log_v3", "bp_log_v2", "bp_log_v1"];
+        const candidates = [STORAGE_KEY, "bp_log_v12", "bp_log_v11", "bp_log_v10", "bp_log_v9", "bp_log_v8", "bp_log_v7", "bp_log_v6", "bp_log_v5", "bp_log_v4", "bp_log_v3", "bp_log_v2", "bp_log_v1"];
         for(const key of candidates){
           try{
             const raw = localStorage.getItem(key);
@@ -1697,7 +1680,6 @@
         internalDrawChart(chartCanvas, filtered, null, false);
       }
 
-      // ✅ NYOMTATÁSBAN SÖTÉT SZÖVEGEK + „Érték (mmHg/BPM)” FELIRAT
       function internalDrawChart(canvas, filteredDesc, forceDpr, isPrint){
         const ctx = canvas.getContext("2d");
         if(!ctx) return;
@@ -1833,7 +1815,6 @@
           ctx.restore();
         }
 
-        // ✅ tengely feliratok
         ctx.fillStyle = C.text;
         ctx.font = `700 ${12*dpr}px ${getFontFamily()}`;
 
