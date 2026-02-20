@@ -15,11 +15,11 @@
       --muted:rgba(255,255,255,.68);
       --border:rgba(255,255,255,.12);
       --shadow:0 18px 55px rgba(0,0,0,.35);
-      --accent:#6ee7ff;
-      --accent2:#a78bfa;
-      --accent3:#3ee6a0;
+      --accent:#6ee7ff;   /* SYS */
+      --accent2:#a78bfa;  /* DIA */
+      --accent3:#3ee6a0;  /* Pulse */
+      --warn:#ffcc66;     /* Zone */
       --danger:#ff6b6b;
-      --warn:#ffcc66;
       --radius:18px;
       --radius2:14px;
       --font:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple Color Emoji","Segoe UI Emoji";
@@ -41,8 +41,19 @@
       display:flex;gap:16px;align-items:flex-start;justify-content:space-between;
       flex-wrap:wrap;margin-bottom:18px;
     }
-    .title{display:flex;flex-direction:column;gap:6px;}
     h1{margin:0;font-size:clamp(22px,2.6vw,34px);letter-spacing:.2px;}
+
+    .pill{
+      font-size:12px;padding:6px 10px;border-radius:999px;
+      border:1px solid rgba(255,255,255,.14);
+      color:var(--muted);background:rgba(255,255,255,.04);
+      display:inline-flex;align-items:center;gap:8px;user-select:none;
+    }
+    .dot{
+      width:8px;height:8px;border-radius:999px;
+      background:linear-gradient(90deg,var(--accent),var(--accent2));
+      box-shadow:0 0 0 3px rgba(110,231,255,.15);
+    }
 
     .grid{display:grid;grid-template-columns:1.1fr .9fr;gap:16px;align-items:start;}
     @media (max-width:920px){.grid{grid-template-columns:1fr;}}
@@ -60,21 +71,11 @@
       display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;
     }
     .card .hd h2{margin:0;font-size:16px;letter-spacing:.2px;}
-    .pill{
-      font-size:12px;padding:6px 10px;border-radius:999px;
-      border:1px solid rgba(255,255,255,.14);
-      color:var(--muted);background:rgba(255,255,255,.04);
-      display:inline-flex;align-items:center;gap:8px;user-select:none;
-    }
-    .dot{
-      width:8px;height:8px;border-radius:999px;
-      background:linear-gradient(90deg,var(--accent),var(--accent2));
-      box-shadow:0 0 0 3px rgba(110,231,255,.15);
-    }
     .bd{padding:16px;}
 
     .form{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
     @media (max-width:520px){.form{grid-template-columns:1fr;}}
+
     label{display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--muted);}
 
     input,textarea,select{
@@ -87,7 +88,7 @@
       outline:none;
       font-size:14px;
     }
-    /* iOS zoom fix */
+    /* iOS zoom fix: 16px minimum font-size on inputs */
     @media (max-width: 640px){
       input,textarea,select{ font-size:16px; }
     }
@@ -126,20 +127,21 @@
       color:#ffd0d0;
       border:1px solid rgba(255,107,107,.25);
       box-shadow:none;
+      font-weight:800;
     }
     .btn-ok{
       background:rgba(62,230,160,.12);
       color:#cbffe9;
       border:1px solid rgba(62,230,160,.22);
       box-shadow:none;
-      font-weight:700;
+      font-weight:800;
     }
     .btn-warn{
       background:rgba(255,204,102,.12);
       color:#ffe6b3;
       border:1px solid rgba(255,204,102,.22);
       box-shadow:none;
-      font-weight:700;
+      font-weight:800;
     }
 
     .stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
@@ -317,8 +319,9 @@
       line-height:1.35;
       display:none;
       pointer-events:none;
-      max-width:280px;
+      max-width:320px;
       white-space:nowrap;
+      z-index:5;
     }
     .tooltip .t{color:rgba(255,255,255,.75);margin-bottom:6px;}
     .tooltip .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
@@ -423,7 +426,7 @@
     .risk-high{border-color:rgba(255,107,107,.30);}
     .risk-high .badge{border-color:rgba(255,107,107,.40);}
 
-    /* Sync panel (mini) */
+    /* Sync panel */
     .syncMini{
       margin-top:10px;
       padding:12px;
@@ -488,9 +491,7 @@
 <body>
   <div class="wrap">
     <header>
-      <div class="title">
-        <h1>Vérnyomásnapló</h1>
-      </div>
+      <h1>Vérnyomásnapló</h1>
       <div class="pill"><span class="dot"></span> Online (helyi tárolás + felhő szinkron)</div>
     </header>
 
@@ -566,7 +567,7 @@
               <button type="button" class="btn-danger" id="clearAll">Összes törlése</button>
             </div>
 
-            <!-- ✅ Felhő szinkron mini panel -->
+            <!-- Felhő szinkron panel -->
             <div class="span2 syncMini">
               <div class="left">
                 <span class="syncState" id="syncState">
@@ -714,10 +715,10 @@
       /******************************************************************
        * Helyi kulcsok
        ******************************************************************/
-      const STORAGE_KEY = "bp_log_v14";
-      const PREF_KEY = "bp_chart_prefs_v10";
-      const UI_KEY = "bp_ui_prefs_v9";
-      const SYNC_KEY = "bp_cloud_sync_v1"; // {enabled, logId, pinHint, lastPullAt, lastPushAt, lastRemoteAt}
+      const STORAGE_KEY = "bp_log_v15";
+      const PREF_KEY = "bp_chart_prefs_v11";
+      const UI_KEY = "bp_ui_prefs_v10";
+      const SYNC_KEY = "bp_cloud_sync_v2";
 
       /******************************************************************
        * UI elemek
@@ -806,11 +807,12 @@
       let page = 1;
       let pageSize = 5;
 
+      // chart hover state
       let chartState = null;
 
       // Sync
       let sb = null;
-      let syncCfg = loadSyncCfg(); // {enabled, logId, pinHint, ...}
+      let syncCfg = loadSyncCfg();
       let syncBusy = false;
       let syncDebounceT = null;
       let localRevision = Date.now();
@@ -822,10 +824,14 @@
       loadUiPrefs();
       loadChartPrefs();
       syncRangeCustomUI();
+
       initSupabase();
       updateSyncUI("init");
+
+      // első render
       render();
 
+      // startup pull, ha aktív
       (async () => {
         if (syncCfg.enabled && syncCfg.logId) {
           await cloudPull({reason:"startup"});
@@ -1051,17 +1057,17 @@
         if(chartVisible) drawChart(getFiltered().filtered);
       });
 
+      // chart hover events
       chartCanvas.addEventListener("mouseleave", hideTooltip);
-      chartCanvas.addEventListener("touchend", hideTooltip, {passive:true});
       chartCanvas.addEventListener("mousemove", (ev) => onPointerMove(ev.clientX, ev.clientY));
+      chartCanvas.addEventListener("touchend", hideTooltip, {passive:true});
       chartCanvas.addEventListener("touchmove", (ev) => {
         if(!ev.touches || !ev.touches[0]) return;
         const t = ev.touches[0];
         onPointerMove(t.clientX, t.clientY);
       }, {passive:true});
 
-      window.addEventListener("beforeunload", saveUiPrefs);
-
+      // cloud buttons
       syncSettingsBtn.addEventListener("click", async () => {
         await openSyncSettings();
       });
@@ -1384,7 +1390,353 @@
       }
 
       /******************************************************************
-       * Print/PDF
+       * ✅ Grafikon (tengelyek: nap alul, érték bal oldalt)
+       ******************************************************************/
+      function drawChart(data){
+        internalDrawChart(chartCanvas, data, 1, false);
+      }
+
+      function internalDrawChart(canvas, data, dprOverride, isPrint){
+        const ctx = canvas.getContext("2d");
+        const rect = canvas.getBoundingClientRect();
+        const dpr = dprOverride || (window.devicePixelRatio || 1);
+
+        // Resize backing store to match display size (for crisp lines)
+        const cssW = Math.max(320, Math.round(rect.width));
+        const cssH = Math.max(240, Math.round(rect.height));
+        const targetW = Math.round(cssW * dpr);
+        const targetH = Math.round(cssH * dpr);
+
+        if(canvas.width !== targetW || canvas.height !== targetH){
+          canvas.width = targetW;
+          canvas.height = targetH;
+        }
+
+        // Clear
+        ctx.setTransform(1,0,0,1,0,0);
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        // Theme for chart
+        const bg = isPrint ? "#ffffff" : "rgba(0,0,0,.10)";
+        const grid = isPrint ? "rgba(0,0,0,.12)" : "rgba(255,255,255,.10)";
+        const axis = isPrint ? "rgba(0,0,0,.45)" : "rgba(255,255,255,.55)";
+        const text = isPrint ? "#111" : "rgba(255,255,255,.82)";
+        const textMuted = isPrint ? "rgba(0,0,0,.60)" : "rgba(255,255,255,.65)";
+        const sysColor = "rgba(110,231,255,.95)";
+        const diaColor = "rgba(167,139,250,.95)";
+        const pulseColor = "rgba(62,230,160,.95)";
+        const zoneFill = "rgba(255,204,102,.30)";
+        const zoneStroke = "rgba(255,204,102,.85)";
+
+        // Fill background
+        ctx.fillStyle = bg;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        const pad = { l: Math.round(62*dpr), r: Math.round(18*dpr), t: Math.round(18*dpr), b: Math.round(46*dpr) };
+        const plot = {
+          x: pad.l,
+          y: pad.t,
+          w: canvas.width - pad.l - pad.r,
+          h: canvas.height - pad.t - pad.b
+        };
+
+        // No / not enough data
+        if(!data || data.length === 0){
+          ctx.fillStyle = textMuted;
+          ctx.font = `${Math.round(14*dpr)}px Arial`;
+          ctx.textAlign = "center";
+          ctx.fillText("Nincs adat a grafikonhoz.", canvas.width/2, canvas.height/2);
+          chartState = null;
+          return;
+        }
+
+        // Sort by time ASC for chart
+        const points = data.slice().sort((a,b)=> new Date(a.ts)-new Date(b.ts));
+
+        // Determine y-range (include sys/dia; include pulse if visible)
+        const vals = [];
+        points.forEach(p=>{
+          vals.push(p.sys, p.dia);
+          if(showPulseChk.checked && typeof p.pulse === "number" && isFinite(p.pulse)) vals.push(p.pulse);
+        });
+
+        let yMin = Math.min(...vals);
+        let yMax = Math.max(...vals);
+        if(!isFinite(yMin) || !isFinite(yMax)){
+          yMin = 0; yMax = 1;
+        }
+
+        // Expand a bit & "nice" axis
+        const nice = niceBounds(yMin, yMax, 6);
+        yMin = nice.min;
+        yMax = nice.max;
+        const yStep = nice.step;
+
+        // x scale
+        const xs = points.map((p,i)=>i);
+        const xMin = 0;
+        const xMax = Math.max(1, points.length-1);
+
+        const xToPx = (x) => plot.x + (x - xMin) / (xMax - xMin) * plot.w;
+        const yToPx = (y) => plot.y + (yMax - y) / (yMax - yMin) * plot.h;
+
+        // Grid Y
+        ctx.strokeStyle = grid;
+        ctx.lineWidth = Math.max(1, 1*dpr);
+        ctx.beginPath();
+        for(let y=yMin; y<=yMax+0.0001; y+=yStep){
+          const py = yToPx(y);
+          ctx.moveTo(plot.x, py);
+          ctx.lineTo(plot.x+plot.w, py);
+        }
+        ctx.stroke();
+
+        // Grid X: show up to ~8 ticks
+        const xTicks = chooseXTicks(points.length, 8);
+        ctx.beginPath();
+        xTicks.forEach(i=>{
+          const px = xToPx(i);
+          ctx.moveTo(px, plot.y);
+          ctx.lineTo(px, plot.y+plot.h);
+        });
+        ctx.stroke();
+
+        // Zone shading (SYS + DIA) - optional
+        if(showZoneChk.checked){
+          // We draw two bands combined visually by overlaying
+          const zSysLo = clampInt(toInt(zoneSysLo.value), 60, 260);
+          const zSysHi = clampInt(toInt(zoneSysHi.value), 60, 260);
+          const zDiaLo = clampInt(toInt(zoneDiaLo.value), 40, 160);
+          const zDiaHi = clampInt(toInt(zoneDiaHi.value), 40, 160);
+
+          // SYS band
+          const sysTop = yToPx(Math.max(zSysLo, zSysHi));
+          const sysBot = yToPx(Math.min(zSysLo, zSysHi));
+          ctx.fillStyle = zoneFill;
+          ctx.fillRect(plot.x, sysTop, plot.w, sysBot - sysTop);
+
+          // DIA band
+          const diaTop = yToPx(Math.max(zDiaLo, zDiaHi));
+          const diaBot = yToPx(Math.min(zDiaLo, zDiaHi));
+          ctx.fillStyle = zoneFill;
+          ctx.fillRect(plot.x, diaTop, plot.w, diaBot - diaTop);
+
+          // Optional border hint on bands
+          ctx.strokeStyle = zoneStroke;
+          ctx.setLineDash([Math.round(6*dpr), Math.round(6*dpr)]);
+          ctx.lineWidth = Math.max(1, 1*dpr);
+          // SYS borders
+          ctx.beginPath();
+          ctx.moveTo(plot.x, sysTop); ctx.lineTo(plot.x+plot.w, sysTop);
+          ctx.moveTo(plot.x, sysBot); ctx.lineTo(plot.x+plot.w, sysBot);
+          // DIA borders
+          ctx.moveTo(plot.x, diaTop); ctx.lineTo(plot.x+plot.w, diaTop);
+          ctx.moveTo(plot.x, diaBot); ctx.lineTo(plot.x+plot.w, diaBot);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // Axes
+        ctx.strokeStyle = axis;
+        ctx.lineWidth = Math.max(1.2, 1.2*dpr);
+        ctx.beginPath();
+        // Y axis
+        ctx.moveTo(plot.x, plot.y);
+        ctx.lineTo(plot.x, plot.y+plot.h);
+        // X axis
+        ctx.moveTo(plot.x, plot.y+plot.h);
+        ctx.lineTo(plot.x+plot.w, plot.y+plot.h);
+        ctx.stroke();
+
+        // Y labels (value) - left vertical axis
+        ctx.fillStyle = textMuted;
+        ctx.font = `${Math.round(12*dpr)}px Arial`;
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        for(let y=yMin; y<=yMax+0.0001; y+=yStep){
+          const py = yToPx(y);
+          ctx.fillText(String(Math.round(y)), plot.x - Math.round(10*dpr), py);
+        }
+
+        // X labels (date) - bottom axis
+        ctx.fillStyle = textMuted;
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        xTicks.forEach(i=>{
+          const px = xToPx(i);
+          const label = formatDayShort(points[i].ts); // MM.DD
+          ctx.fillText(label, px, plot.y+plot.h + Math.round(8*dpr));
+        });
+
+        // Axis title hints (small)
+        ctx.fillStyle = textMuted;
+        ctx.font = `${Math.round(11*dpr)}px Arial`;
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText("Érték (mmHg/BPM)", plot.x, Math.round(2*dpr));
+        ctx.textAlign = "right";
+        ctx.fillText("Nap", plot.x+plot.w, plot.y+plot.h + Math.round(30*dpr));
+
+        // Lines
+        const drawSeries = (getY, color, showPoints=true) => {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = Math.max(2, 2*dpr);
+          ctx.beginPath();
+          let started = false;
+          points.forEach((p, i) => {
+            const y = getY(p);
+            if(y === null || !isFinite(y)) { started = false; return; }
+            const x = xToPx(i);
+            const py = yToPx(y);
+            if(!started){
+              ctx.moveTo(x, py);
+              started = true;
+            }else{
+              ctx.lineTo(x, py);
+            }
+          });
+          ctx.stroke();
+
+          if(showPoints){
+            ctx.fillStyle = color;
+            points.forEach((p,i)=>{
+              const y = getY(p);
+              if(y === null || !isFinite(y)) return;
+              const x = xToPx(i);
+              const py = yToPx(y);
+              ctx.beginPath();
+              ctx.arc(x, py, Math.max(3, 3*dpr), 0, Math.PI*2);
+              ctx.fill();
+            });
+          }
+        };
+
+        drawSeries(p=>p.sys, sysColor, true);
+        drawSeries(p=>p.dia, diaColor, true);
+        if(showPulseChk.checked){
+          drawSeries(p=> (typeof p.pulse==="number" && isFinite(p.pulse)) ? p.pulse : null, pulseColor, true);
+        }
+
+        // Store hover state (for tooltip)
+        chartState = {
+          plot, dpr,
+          points,
+          xToPx, yToPx,
+          sysColor, diaColor, pulseColor,
+          hasPulse: !!showPulseChk.checked,
+          yMin, yMax, xMin, xMax
+        };
+
+        // If currently visible tooltip and mouse still, it will update on next move
+      }
+
+      function niceBounds(min, max, ticks){
+        if(min === max){
+          min -= 1; max += 1;
+        }
+        const span = max - min;
+        const rawStep = span / Math.max(2, ticks);
+        const step = niceStep(rawStep);
+        const niceMin = Math.floor(min/step) * step;
+        const niceMax = Math.ceil(max/step) * step;
+        return { min: niceMin, max: niceMax, step };
+      }
+      function niceStep(raw){
+        const pow = Math.pow(10, Math.floor(Math.log10(raw)));
+        const frac = raw / pow;
+        let niceFrac;
+        if(frac <= 1) niceFrac = 1;
+        else if(frac <= 2) niceFrac = 2;
+        else if(frac <= 5) niceFrac = 5;
+        else niceFrac = 10;
+        return niceFrac * pow;
+      }
+      function chooseXTicks(n, maxTicks){
+        if(n <= 1) return [0];
+        const ticks = Math.min(maxTicks, n);
+        const step = Math.max(1, Math.round((n-1)/(ticks-1)));
+        const out = [];
+        for(let i=0; i<n; i+=step) out.push(i);
+        if(out[out.length-1] !== n-1) out.push(n-1);
+        return out;
+      }
+
+      function onPointerMove(clientX, clientY){
+        if(!chartState) return;
+        const rect = chartCanvas.getBoundingClientRect();
+        const x = clientX - rect.left;
+        const y = clientY - rect.top;
+        const dpr = chartState.dpr || (window.devicePixelRatio || 1);
+
+        const px = x * dpr;
+        const py = y * dpr;
+
+        const { plot, points } = chartState;
+        if(px < plot.x || px > plot.x+plot.w || py < plot.y || py > plot.y+plot.h){
+          hideTooltip();
+          return;
+        }
+
+        // nearest x index
+        const idx = nearestIndex(px, plot.x, plot.w, points.length);
+        if(idx < 0 || idx >= points.length){ hideTooltip(); return; }
+
+        const p = points[idx];
+
+        // tooltip content
+        const lines = [];
+        lines.push({label:"SYS", val: p.sys, color: chartState.sysColor});
+        lines.push({label:"DIA", val: p.dia, color: chartState.diaColor});
+        if(chartState.hasPulse){
+          lines.push({label:"Pulzus", val: (p.pulse ?? "–"), color: chartState.pulseColor});
+        }
+
+        // show tooltip
+        const tHtml = `
+          <div class="t">${escapeHtml(formatHu(p.ts))} • ${escapeHtml(p.context)} • ${escapeHtml(p.arm)} kar</div>
+          <div class="row">
+            ${lines.map(l => `
+              <span class="b"><span class="s" style="background:${l.color}"></span>${escapeHtml(l.label)} ${escapeHtml(String(l.val))}</span>
+            `).join("")}
+          </div>
+          ${p.note ? `<div class="t" style="margin-top:6px;color:rgba(255,255,255,.70)">${escapeHtml(p.note)}</div>` : ``}
+        `;
+        tooltip.innerHTML = tHtml;
+        tooltip.style.display = "block";
+
+        // position tooltip near cursor but keep in bounds
+        const pad = 10;
+        const tw = tooltip.offsetWidth || 260;
+        const th = tooltip.offsetHeight || 80;
+        let left = x + 12;
+        let top = y + 12;
+
+        if(left + tw + pad > rect.width) left = x - tw - 12;
+        if(top + th + pad > rect.height) top = y - th - 12;
+        left = Math.max(pad, Math.min(rect.width - tw - pad, left));
+        top = Math.max(pad, Math.min(rect.height - th - pad, top));
+
+        tooltip.style.left = left + "px";
+        tooltip.style.top = top + "px";
+      }
+
+      function nearestIndex(px, plotX, plotW, n){
+        if(n <= 1) return 0;
+        const t = (px - plotX) / plotW;
+        const idxFloat = t * (n - 1);
+        if(snapNearestChk.checked){
+          return Math.round(idxFloat);
+        }
+        // if not snap, still round (simpler)
+        return Math.round(idxFloat);
+      }
+
+      function hideTooltip(){
+        if(tooltip) tooltip.style.display = "none";
+      }
+
+      /******************************************************************
+       * Print/PDF – grafikon rákerül, tengelyfeliratok + nap/érték is rajta
        ******************************************************************/
       async function preparePrint(){
         const { filtered } = getFiltered();
@@ -1490,16 +1842,20 @@
       }
 
       async function buildPrintChartDataUrl(filtered, rangeLabel, q){
-        if(!filtered || filtered.length < 2) return null;
+        if(!filtered || filtered.length < 1) return null;
 
+        // Create chart-only canvas (print style)
         const chartOnly = document.createElement("canvas");
         chartOnly.width = 1400;
         chartOnly.height = 560;
-        internalDrawChart(chartOnly, filtered, 1, true);
 
+        // Draw chart onto chartOnly in "print mode"
+        internalDrawChartForPrint(chartOnly, filtered);
+
+        // Compose final canvas with title + subtitle + chart + legend
         const out = document.createElement("canvas");
         out.width = 1400;
-        out.height = 860;
+        out.height = 900;
 
         const ctx = out.getContext("2d");
         ctx.fillStyle = "#ffffff";
@@ -1508,29 +1864,179 @@
         ctx.fillStyle = "#000";
         ctx.textAlign = "center";
         ctx.font = "bold 28px Arial";
-        ctx.fillText("Vérnyomás trend grafikon", out.width/2, 40);
+        ctx.fillText("Vérnyomás trend grafikon", out.width/2, 44);
 
         ctx.font = "16px Arial";
         const sub = `${rangeLabel}${q ? " • Keresés: " + q : ""}`;
-        ctx.fillText(sub, out.width/2, 68);
+        ctx.fillText(sub, out.width/2, 72);
 
-        ctx.drawImage(chartOnly, 0, 110);
-
-        const legendTop = 110 + 560 + 30;
-        drawPrintLegend(ctx, 260, legendTop);
-
+        // frame
         ctx.strokeStyle = "#bbbbbb";
         ctx.lineWidth = 2;
-        ctx.strokeRect(10, 10, out.width-20, out.height-20);
+        ctx.strokeRect(12, 12, out.width-24, out.height-24);
+
+        // chart image
+        ctx.drawImage(chartOnly, 0, 110);
+
+        // legend under chart
+        const legendTop = 110 + 560 + 30;
+        drawPrintLegend(ctx, 240, legendTop);
 
         try{ return out.toDataURL("image/png"); }catch{ return null; }
       }
 
+      function internalDrawChartForPrint(canvas, data){
+        const ctx = canvas.getContext("2d");
+        ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        // Temporarily force print-like rendering by calling internalDrawChart logic
+        // We mimic the "display size" by setting a fake bounding box
+        // Use a wrapper that doesn't rely on getBoundingClientRect.
+        const dpr = 1;
+
+        // We implement a simplified variant using the same drawing approach as internalDrawChart,
+        // but fixed dimensions and print colors.
+        const points = data.slice().sort((a,b)=> new Date(a.ts)-new Date(b.ts));
+
+        const bg = "#ffffff";
+        const grid = "rgba(0,0,0,.12)";
+        const axis = "rgba(0,0,0,.45)";
+        const textMuted = "rgba(0,0,0,.60)";
+        const sysColor = "rgba(110,231,255,.95)";
+        const diaColor = "rgba(167,139,250,.95)";
+        const pulseColor = "rgba(62,230,160,.95)";
+        const zoneFill = "rgba(255,204,102,.30)";
+        const zoneStroke = "rgba(255,204,102,.85)";
+
+        ctx.fillStyle = bg;
+        ctx.fillRect(0,0,canvas.width,canvas.height);
+
+        const pad = { l: 80, r: 20, t: 20, b: 60 };
+        const plot = { x: pad.l, y: pad.t, w: canvas.width-pad.l-pad.r, h: canvas.height-pad.t-pad.b };
+
+        const vals = [];
+        points.forEach(p=>{
+          vals.push(p.sys, p.dia);
+          if(showPulseChk.checked && typeof p.pulse === "number" && isFinite(p.pulse)) vals.push(p.pulse);
+        });
+        let yMin = Math.min(...vals), yMax = Math.max(...vals);
+        if(!isFinite(yMin)||!isFinite(yMax)){ yMin=0;yMax=1; }
+        const nice = niceBounds(yMin, yMax, 6);
+        yMin = nice.min; yMax = nice.max; const yStep = nice.step;
+
+        const xMax = Math.max(1, points.length-1);
+        const xToPx = (i)=> plot.x + (i/xMax)*plot.w;
+        const yToPx = (y)=> plot.y + (yMax-y)/(yMax-yMin)*plot.h;
+
+        // grid
+        ctx.strokeStyle = grid;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        for(let y=yMin; y<=yMax+0.0001; y+=yStep){
+          const py = yToPx(y);
+          ctx.moveTo(plot.x, py); ctx.lineTo(plot.x+plot.w, py);
+        }
+        const xTicks = chooseXTicks(points.length, 8);
+        xTicks.forEach(i=>{
+          const px = xToPx(i);
+          ctx.moveTo(px, plot.y); ctx.lineTo(px, plot.y+plot.h);
+        });
+        ctx.stroke();
+
+        // zone
+        if(showZoneChk.checked){
+          const zSysLo = clampInt(toInt(zoneSysLo.value), 60, 260);
+          const zSysHi = clampInt(toInt(zoneSysHi.value), 60, 260);
+          const zDiaLo = clampInt(toInt(zoneDiaLo.value), 40, 160);
+          const zDiaHi = clampInt(toInt(zoneDiaHi.value), 40, 160);
+
+          const sysTop = yToPx(Math.max(zSysLo,zSysHi));
+          const sysBot = yToPx(Math.min(zSysLo,zSysHi));
+          ctx.fillStyle = zoneFill;
+          ctx.fillRect(plot.x, sysTop, plot.w, sysBot-sysTop);
+
+          const diaTop = yToPx(Math.max(zDiaLo,zDiaHi));
+          const diaBot = yToPx(Math.min(zDiaLo,zDiaHi));
+          ctx.fillStyle = zoneFill;
+          ctx.fillRect(plot.x, diaTop, plot.w, diaBot-diaTop);
+
+          ctx.strokeStyle = zoneStroke;
+          ctx.setLineDash([6,6]);
+          ctx.beginPath();
+          ctx.moveTo(plot.x, sysTop); ctx.lineTo(plot.x+plot.w, sysTop);
+          ctx.moveTo(plot.x, sysBot); ctx.lineTo(plot.x+plot.w, sysBot);
+          ctx.moveTo(plot.x, diaTop); ctx.lineTo(plot.x+plot.w, diaTop);
+          ctx.moveTo(plot.x, diaBot); ctx.lineTo(plot.x+plot.w, diaBot);
+          ctx.stroke();
+          ctx.setLineDash([]);
+        }
+
+        // axes
+        ctx.strokeStyle = axis;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(plot.x, plot.y); ctx.lineTo(plot.x, plot.y+plot.h);
+        ctx.moveTo(plot.x, plot.y+plot.h); ctx.lineTo(plot.x+plot.w, plot.y+plot.h);
+        ctx.stroke();
+
+        // labels
+        ctx.fillStyle = textMuted;
+        ctx.font = "12px Arial";
+        ctx.textAlign = "right";
+        ctx.textBaseline = "middle";
+        for(let y=yMin; y<=yMax+0.0001; y+=yStep){
+          ctx.fillText(String(Math.round(y)), plot.x-10, yToPx(y));
+        }
+
+        ctx.textAlign = "center";
+        ctx.textBaseline = "top";
+        xTicks.forEach(i=>{
+          ctx.fillText(formatDayShort(points[i].ts), xToPx(i), plot.y+plot.h+10);
+        });
+
+        ctx.font = "11px Arial";
+        ctx.textAlign = "left";
+        ctx.textBaseline = "top";
+        ctx.fillText("Érték (mmHg/BPM)", plot.x, 2);
+        ctx.textAlign = "right";
+        ctx.fillText("Nap", plot.x+plot.w, plot.y+plot.h+34);
+
+        const drawSeries = (getY, color) => {
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 2;
+          ctx.beginPath();
+          let started=false;
+          points.forEach((p,i)=>{
+            const y=getY(p);
+            if(y===null || !isFinite(y)){ started=false; return; }
+            const px=xToPx(i), py=yToPx(y);
+            if(!started){ ctx.moveTo(px,py); started=true; } else ctx.lineTo(px,py);
+          });
+          ctx.stroke();
+
+          ctx.fillStyle = color;
+          points.forEach((p,i)=>{
+            const y=getY(p);
+            if(y===null || !isFinite(y)) return;
+            const px=xToPx(i), py=yToPx(y);
+            ctx.beginPath();
+            ctx.arc(px,py,3,0,Math.PI*2);
+            ctx.fill();
+          });
+        };
+
+        drawSeries(p=>p.sys, sysColor);
+        drawSeries(p=>p.dia, diaColor);
+        if(showPulseChk.checked){
+          drawSeries(p=> (typeof p.pulse==="number" && isFinite(p.pulse)) ? p.pulse : null, pulseColor);
+        }
+      }
+
       function drawPrintLegend(ctx, xStart, y){
         const items = [
-          { label: "SYS (mmHg)", color: "rgba(110,231,255,.95)" },
-          { label: "DIA (mmHg)", color: "rgba(167,139,250,.95)" },
-          { label: "Pulzus (BPM)", color: "rgba(62,230,160,.95)" },
+          { label: "SYS (mmHg)", color: "rgba(110,231,255,.95)", border:"#666" },
+          { label: "DIA (mmHg)", color: "rgba(167,139,250,.95)", border:"#666" },
+          { label: "Pulzus (BPM)", color: "rgba(62,230,160,.95)", border:"#666" },
           { label: "Célzóna", color: "rgba(255,204,102,.45)", border: "rgba(255,204,102,.85)" }
         ];
 
@@ -1555,8 +2061,8 @@
           ctx.fillStyle = "#111";
           ctx.fillText(it.label, x + 26, yy + 1);
 
-          x += 220;
-          if(x > 1200){
+          x += 240;
+          if(x > 1180){
             x = xStart;
             yy += 26;
           }
@@ -1612,7 +2118,7 @@
       function save(arr){ localStorage.setItem(STORAGE_KEY, JSON.stringify(arr)); }
 
       function loadAny(){
-        const candidates = [STORAGE_KEY, "bp_log_v13", "bp_log_v12", "bp_log_v11", "bp_log_v10", "bp_log_v9", "bp_log_v8", "bp_log_v7", "bp_log_v6", "bp_log_v5", "bp_log_v4", "bp_log_v3", "bp_log_v2", "bp_log_v1"];
+        const candidates = [STORAGE_KEY, "bp_log_v14", "bp_log_v13", "bp_log_v12", "bp_log_v11", "bp_log_v10", "bp_log_v9", "bp_log_v8", "bp_log_v7", "bp_log_v6", "bp_log_v5", "bp_log_v4", "bp_log_v3", "bp_log_v2", "bp_log_v1"];
         for(const key of candidates){
           try{
             const raw = localStorage.getItem(key);
@@ -1816,7 +2322,7 @@
       function buildExportObject(){
         return {
           exportedAt: new Date().toISOString(),
-          version: 14,
+          version: 15,
           entries,
           chartPrefs: getChartPrefs(),
           uiPrefs: getUiPrefs(),
@@ -1829,8 +2335,10 @@
        ******************************************************************/
       function initSupabase(){
         try{
+          if(!window.supabase || !window.supabase.createClient) throw new Error("Supabase SDK nem töltött be");
           sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        }catch{
+        }catch(err){
+          console.error(err);
           sb = null;
         }
       }
@@ -1872,6 +2380,13 @@
           return;
         }
 
+        if(!crypto?.subtle){
+          syncText.textContent = "Felhő szinkron: HTTPS szükséges (titkosításhoz)";
+          syncDot.className = "syncDot bad";
+          syncMeta.textContent = "A WebCrypto nem elérhető.";
+          return;
+        }
+
         if(syncBusy){
           syncText.textContent = "Felhő szinkron: folyamatban…";
           syncDot.className = "syncDot mid";
@@ -1886,8 +2401,17 @@
       }
 
       async function openSyncSettings(){
-        const enabled = confirm("Felhő szinkron beállítás:\n\nOK = bekapcsolom / módosítom\nMégse = kilép");
-        if(!enabled) return;
+        if(!sb){
+          showToast("Supabase nem elérhető.");
+          return;
+        }
+        if(!crypto?.subtle){
+          alert("A felhő szinkron titkosítást használ (WebCrypto).\nEhhez HTTPS/secure környezet kell.\n\nTedd HTTPS alá az oldalt (pl. Pages, tárhely SSL).");
+          return;
+        }
+
+        const ok = confirm("Felhő szinkron beállítás:\n\nOK = bekapcsolom / módosítom\nMégse = kilép");
+        if(!ok) return;
 
         const logId = prompt("Napló azonosító (pl. csalad_bp vagy egyedi kód):", syncCfg.logId || "");
         if(!logId) return;
@@ -2048,7 +2572,7 @@
       }
 
       async function encryptObjectToPayload(obj, pin){
-        const saltStr = `bp:${syncCfg.logId}:v1`;
+        const saltStr = `bp:${syncCfg.logId}:v2`;
         const key = await deriveKey(pin, saltStr);
 
         const iv = crypto.getRandomValues(new Uint8Array(12));
@@ -2062,18 +2586,20 @@
         );
 
         const cipher = new Uint8Array(cipherBuf);
-        return "v1." + b64FromBytes(iv) + "." + b64FromBytes(cipher);
+        return "v2." + b64FromBytes(iv) + "." + b64FromBytes(cipher);
       }
 
       async function decryptPayloadToObject(payload, pin){
         if(!payload || typeof payload !== "string") throw new Error("payload üres");
         const parts = payload.split(".");
-        if(parts.length !== 3 || parts[0] !== "v1") throw new Error("payload verzió ismeretlen");
+        if(parts.length !== 3) throw new Error("payload formátum hibás");
+        const ver = parts[0];
 
         const iv = bytesFromB64(parts[1]);
         const cipher = bytesFromB64(parts[2]);
 
-        const saltStr = `bp:${syncCfg.logId}:v1`;
+        // accept v1 or v2
+        const saltStr = `bp:${syncCfg.logId}:${ver}`;
         const key = await deriveKey(pin, saltStr);
 
         const plainBuf = await crypto.subtle.decrypt(
@@ -2088,21 +2614,59 @@
       }
 
       /******************************************************************
-       * (A chart és tooltip rész itt a korábbi verziókkal megegyezően fut)
-       * – kihagyhatatlan részek: drawChart(), internalDrawChart(), stb.
-       * (A te korábbi kódodban már rendben volt.)
+       * Kockázat
        ******************************************************************/
-
-      // ✅ Minimal chart stub, hogy a fájl futtatható legyen akkor is,
-      // ha valaki kiveszi a chart részt. (Nálad úgyis benne lesz a teljes.)
-      function drawChart(){ /* a teljes chart kód nálad már megvan */ }
-      function internalDrawChart(){}
+      function isFinite(n){ return Number.isFinite(n); }
 
       /******************************************************************
-       * Risk
+       * Print legend helper & UI
        ******************************************************************/
-      // (a teljes chart részt a korábbi válaszodban már megkaptad – itt most a Supabase integráció a lényeg)
+      // (already above)
 
+      /******************************************************************
+       * Export object already above
+       ******************************************************************/
+
+      /******************************************************************
+       * Print helpers
+       ******************************************************************/
+      function escapeHtmlPrint(s){ return escapeHtml(s); }
+
+      /******************************************************************
+       * Risk helpers
+       ******************************************************************/
+      // (already above)
+
+      /******************************************************************
+       * Build / save UI prefs
+       ******************************************************************/
+      // (already above)
+
+      /******************************************************************
+       * Print: short helpers already
+       ******************************************************************/
+
+      /******************************************************************
+       * Add missing helpers used by print build
+       ******************************************************************/
+      function getRangeLabel(){ return (function(){
+        if(range.value === "all") return "Összes";
+        if(range.value === "custom"){
+          const d = clampInt(toInt(rangeCustomDays.value), 1, 3650);
+          return `Utolsó ${d} nap (egyéni)`;
+        }
+        const days = toInt(range.value);
+        return `Utolsó ${days} nap`;
+      })(); }
+
+      /******************************************************************
+       * Additional: keep chart state updated on initial render
+       ******************************************************************/
+      // already handled by render()
+
+      /******************************************************************
+       * (End)
+       ******************************************************************/
     })();
   </script>
 </body>
